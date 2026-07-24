@@ -30,7 +30,7 @@ export async function sendWeeklyReport(params: {
       .join('\n')
 
     const { error } = await resend.emails.send({
-      from: 'Weekly Report <noreply@yourdomain.com>',
+      from: 'Weekly Report <onboarding@resend.dev>',
       to: [params.to],
       subject: `[Weekly Report] ${params.weekLabel} 팀 Weekly 종합 보고`,
       html: `
