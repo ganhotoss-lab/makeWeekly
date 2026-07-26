@@ -30,7 +30,6 @@ interface TaskFormProps {
 }
 
 const CATEGORIES: Category[] = ['Biz사업', '내부개선', '상품', '기타']
-const STAGE_STATUSES: StageStatus[] = ['미시작', '진행중', '완료']
 
 export default function TaskForm({
   initialData,
@@ -113,42 +112,28 @@ export default function TaskForm({
         <h3 className="font-medium text-sm text-gray-700">단계별 진행상태</h3>
         <StageRow
           label="분석/설계"
-          statusKey="analysis_status"
           startKey="analysis_start_date"
           endKey="analysis_end_date"
           form={form}
           set={set}
-          statuses={STAGE_STATUSES}
         />
         <StageRow
           label="개발"
-          statusKey="development_status"
           startKey="development_start_date"
           endKey="development_end_date"
           form={form}
           set={set}
-          statuses={STAGE_STATUSES}
         />
         <StageRow
           label="UAT"
-          statusKey="uat_status"
           startKey="uat_start_date"
           endKey="uat_end_date"
           form={form}
           set={set}
-          statuses={STAGE_STATUSES}
         />
         {/* OPEN */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <span className="text-sm text-gray-600 sm:w-24">OPEN</span>
-          <select
-            value={form.open_status}
-            onChange={e => set('open_status', e.target.value as OpenStatus)}
-            className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option>미오픈</option>
-            <option>오픈완료</option>
-          </select>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-400">예정일</span>
             <input
@@ -213,26 +198,17 @@ export default function TaskForm({
 }
 
 function StageRow({
-  label, statusKey, startKey, endKey, form, set, statuses,
+  label, startKey, endKey, form, set,
 }: {
   label: string
-  statusKey: keyof TaskFormData
   startKey: keyof TaskFormData
   endKey: keyof TaskFormData
   form: TaskFormData
   set: <K extends keyof TaskFormData>(key: K, value: TaskFormData[K]) => void
-  statuses: StageStatus[]
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
       <span className="text-sm text-gray-600 sm:w-24">{label}</span>
-      <select
-        value={form[statusKey] as string}
-        onChange={e => set(statusKey, e.target.value as StageStatus)}
-        className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        {statuses.map(s => <option key={s}>{s}</option>)}
-      </select>
       <div className="flex items-center gap-2">
         <input
           type="date"
