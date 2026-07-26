@@ -15,29 +15,32 @@ export default function WeeklyPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const [{ data: taskData }, { data: entryData }] = await Promise.all([
-      supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_completed', false)
-        .order('created_at', { ascending: true }),
-      supabase
-        .from('weekly_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('week_start_date', weekStart),
-    ])
+      const [{ data: taskData }, { data: entryData }] = await Promise.all([
+        supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('is_completed', false)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('weekly_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('week_start_date', weekStart),
+      ])
 
-    setTasks(taskData || [])
-    const entryMap: Record<string, WeeklyEntry> = {}
-    entryData?.forEach(e => { entryMap[e.task_id] = e })
-    setEntries(entryMap)
-    setLoading(false)
+      setTasks(taskData || [])
+      const entryMap: Record<string, WeeklyEntry> = {}
+      entryData?.forEach(e => { entryMap[e.task_id] = e })
+      setEntries(entryMap)
+    } finally {
+      setLoading(false)
+    }
   }, [weekStart])
 
   useEffect(() => { load() }, [load])
