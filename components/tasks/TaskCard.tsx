@@ -40,7 +40,10 @@ export default function TaskCard({ task, entry, onRefresh }: Props) {
               OPEN: {task.open_status}
             </span>
           </div>
-          <p className="font-medium text-gray-900">{task.content}</p>
+          <p className="font-medium text-gray-900">{task.title || task.content}</p>
+          {task.title && (
+            <p className="text-sm text-gray-500 mt-0.5">{task.content}</p>
+          )}
           {task.note && (
             <p className="text-sm text-gray-400 mt-1">비고: {task.note}</p>
           )}

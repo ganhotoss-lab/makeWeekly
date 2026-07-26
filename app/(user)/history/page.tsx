@@ -213,7 +213,10 @@ export default function HistoryPage() {
                     {entry.tasks.is_completed && (
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md shrink-0">완료</span>
                     )}
-                    <span className="font-medium text-sm text-gray-900 break-words">{entry.tasks.content}</span>
+                    <span className="font-medium text-sm text-gray-900 break-words">{entry.tasks.title || entry.tasks.content}</span>
+                    {entry.tasks.title && (
+                      <span className="text-xs text-gray-500 break-words">{entry.tasks.content}</span>
+                    )}
                   </div>
                   <button
                     onClick={() => handleDelete(entry.id)}

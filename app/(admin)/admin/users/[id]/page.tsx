@@ -52,7 +52,10 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
                 )}
               </div>
-              <p className="font-medium text-gray-900 mb-2">{task.content}</p>
+              <p className="font-medium text-gray-900 mb-1">{task.title || task.content}</p>
+              {task.title && (
+                <p className="text-sm text-gray-500 mb-2">{task.content}</p>
+              )}
               <div className="flex gap-2 text-xs flex-wrap mb-3">
                 <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                   분석/설계: {task.analysis_status}

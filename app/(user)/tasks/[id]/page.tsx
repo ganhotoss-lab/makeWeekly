@@ -22,6 +22,7 @@ export default function TaskEditPage() {
       .from('tasks')
       .update({
         category: data.category,
+        title: data.title || null,
         content: data.content,
         analysis_status: data.analysis_status,
         analysis_start_date: data.analysis_start_date || null,

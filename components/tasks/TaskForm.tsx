@@ -5,6 +5,7 @@ import { useLoading } from '@/lib/loading-context'
 
 export interface TaskFormData {
   category: Category
+  title: string
   content: string
   analysis_status: StageStatus
   analysis_start_date: string
@@ -39,6 +40,7 @@ export default function TaskForm({
 }: TaskFormProps) {
   const [form, setForm] = useState<TaskFormData>({
     category: (initialData?.category as Category) || 'Biz사업',
+    title: initialData?.title || '',
     content: initialData?.content || '',
     analysis_status: (initialData?.analysis_status as StageStatus) || '미시작',
     analysis_start_date: initialData?.analysis_start_date || '',
@@ -65,6 +67,7 @@ export default function TaskForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!form.title.trim()) { setError('제목을 입력해주세요.'); return }
     if (!form.content.trim()) { setError('업무 내용을 입력해주세요.'); return }
     setLoading(true)
     setError('')
@@ -91,6 +94,20 @@ export default function TaskForm({
         >
           {CATEGORIES.map(c => <option key={c}>{c}</option>)}
         </select>
+      </div>
+
+      {/* 제목 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          제목 <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          value={form.title}
+          onChange={e => set('title', e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="업무 제목을 간략히 입력하세요"
+        />
       </div>
 
       {/* 업무 내용 */}
