@@ -29,3 +29,11 @@ input, textarea, select {
   color: #171717;
   background-color: #ffffff;
 }
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
