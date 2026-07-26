@@ -17,6 +17,7 @@ export default function HistoryPage() {
   const [selectedWeek, setSelectedWeek] = useState('')
   const [entries, setEntries] = useState<EntryWithTask[]>([])
   const [loading, setLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -57,6 +58,15 @@ export default function HistoryPage() {
     })
   }, [selectedWeek])
 
+  async function handleDeleteEntry(entryId: string) {
+    if (!confirm('이 이력 항목을 삭제하시겠습니까?')) return
+    setDeletingId(entryId)
+    const supabase = createClient()
+    await supabase.from('weekly_entries').delete().eq('id', entryId)
+    setEntries(prev => prev.filter(e => e.id !== entryId))
+    setDeletingId(null)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16 text-gray-400">
@@ -91,15 +101,24 @@ export default function HistoryPage() {
 
           <div className="space-y-4">
             {entries.map(entry => (
-              <div key={entry.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
-                    {entry.tasks.category}
-                  </span>
-                  {entry.tasks.is_completed && (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
-                  )}
-                  <span className="font-medium text-sm text-gray-900">{entry.tasks.content}</span>
+              <div key={entry.id} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
+                      {entry.tasks.category}
+                    </span>
+                    {entry.tasks.is_completed && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
+                    )}
+                    <span className="font-medium text-sm text-gray-900 break-words">{entry.tasks.content}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteEntry(entry.id)}
+                    disabled={deletingId === entry.id}
+                    className="shrink-0 text-xs text-red-400 hover:text-red-600 border border-red-200 hover:bg-red-50 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                  >
+                    {deletingId === entry.id ? '삭제 중...' : '삭제'}
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div>
