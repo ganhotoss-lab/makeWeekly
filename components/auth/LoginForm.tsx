@@ -18,13 +18,18 @@ export default function LoginForm() {
     setError('')
     const email = userId.includes('@') ? userId : userId + EMAIL_SUFFIX
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
+    const { data: { user }, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error || !user) {
       setError('아이디 또는 비밀번호가 올바르지 않습니다.')
       setLoading(false)
       return
     }
-    router.push('/weekly')
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    router.push(profile?.role === 'admin' ? '/admin/dashboard' : '/weekly')
     router.refresh()
   }
 
