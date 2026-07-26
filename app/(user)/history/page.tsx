@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useLoading } from '@/lib/loading-context'
 import { WeeklyEntry, Task } from '@/types'
 
 interface EntryWithTask extends WeeklyEntry {
@@ -17,45 +18,75 @@ export default function HistoryPage() {
   const [selectedWeek, setSelectedWeek] = useState('')
   const [entries, setEntries] = useState<EntryWithTask[]>([])
   const [loading, setLoading] = useState(true)
+  const { startLoading, stopLoading } = useLoading()
+
+  async function loadWeeks() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('weekly_entries')
+      .select('week_start_date, week_label')
+      .eq('user_id', user.id)
+      .order('week_start_date', { ascending: false })
+
+    const seen = new Set<string>()
+    const unique: WeekOption[] = []
+    data?.forEach(d => {
+      if (!seen.has(d.week_start_date)) {
+        seen.add(d.week_start_date)
+        unique.push({ week_start_date: d.week_start_date, week_label: d.week_label })
+      }
+    })
+    setWeeks(unique)
+    return unique
+  }
+
+  async function loadEntries(week: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('weekly_entries')
+      .select('*, tasks(*)')
+      .eq('user_id', user.id)
+      .eq('week_start_date', week)
+      .order('created_at', { ascending: true })
+    setEntries((data as EntryWithTask[]) || [])
+  }
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return
-      const { data } = await supabase
-        .from('weekly_entries')
-        .select('week_start_date, week_label')
-        .eq('user_id', user.id)
-        .order('week_start_date', { ascending: false })
-
-      const seen = new Set<string>()
-      const unique: WeekOption[] = []
-      data?.forEach(d => {
-        if (!seen.has(d.week_start_date)) {
-          seen.add(d.week_start_date)
-          unique.push({ week_start_date: d.week_start_date, week_label: d.week_label })
-        }
-      })
-      setWeeks(unique)
-      if (unique.length > 0) setSelectedWeek(unique[0].week_start_date)
+    loadWeeks().then(unique => {
+      if (unique && unique.length > 0) setSelectedWeek(unique[0].week_start_date)
       setLoading(false)
     })
   }, [])
 
   useEffect(() => {
     if (!selectedWeek) return
-    const supabase = createClient()
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return
-      const { data } = await supabase
-        .from('weekly_entries')
-        .select('*, tasks(*)')
-        .eq('user_id', user.id)
-        .eq('week_start_date', selectedWeek)
-        .order('created_at', { ascending: true })
-      setEntries((data as EntryWithTask[]) || [])
-    })
+    loadEntries(selectedWeek)
   }, [selectedWeek])
+
+  async function handleDelete(entryId: string) {
+    if (!confirm('이 위클리를 삭제하시겠습니까?')) return
+    startLoading()
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.from('weekly_entries').delete().eq('id', entryId)
+      if (error) {
+        alert('삭제 중 오류가 발생했습니다: ' + error.message)
+        return
+      }
+      await loadEntries(selectedWeek)
+      // refresh week list (entry count may change)
+      const unique = await loadWeeks()
+      if (unique && unique.length > 0 && !unique.find(w => w.week_start_date === selectedWeek)) {
+        setSelectedWeek(unique[0].week_start_date)
+      }
+    } finally {
+      stopLoading()
+    }
+  }
 
   if (loading) {
     return (
@@ -78,7 +109,7 @@ export default function HistoryPage() {
               <button
                 key={w.week_start_date}
                 onClick={() => setSelectedWeek(w.week_start_date)}
-                className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-sm border transition-all duration-75 active:scale-95 active:opacity-90 ${
                   selectedWeek === w.week_start_date
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'border-gray-200 hover:bg-gray-50 text-gray-600'
@@ -92,14 +123,22 @@ export default function HistoryPage() {
           <div className="space-y-4">
             {entries.map(entry => (
               <div key={entry.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
-                    {entry.tasks.category}
-                  </span>
-                  {entry.tasks.is_completed && (
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
-                  )}
-                  <span className="font-medium text-sm text-gray-900">{entry.tasks.content}</span>
+                <div className="flex items-start justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
+                      {entry.tasks.category}
+                    </span>
+                    {entry.tasks.is_completed && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
+                    )}
+                    <span className="font-medium text-sm text-gray-900">{entry.tasks.content}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(entry.id)}
+                    className="shrink-0 text-xs border border-red-200 text-red-400 hover:bg-red-50 px-2 py-1 rounded-lg transition-all duration-75 active:scale-95 active:opacity-90"
+                  >
+                    삭제
+                  </button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                   <div>

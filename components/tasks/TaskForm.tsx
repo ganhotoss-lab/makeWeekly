@@ -135,12 +135,12 @@ export default function TaskForm({
           statuses={STAGE_STATUSES}
         />
         {/* OPEN */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <span className="text-sm text-gray-600 w-24">OPEN</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <span className="text-sm text-gray-600 sm:w-24">OPEN</span>
           <select
             value={form.open_status}
             onChange={e => set('open_status', e.target.value as OpenStatus)}
-            className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option>미오픈</option>
             <option>오픈완료</option>
@@ -151,7 +151,7 @@ export default function TaskForm({
               type="date"
               value={form.open_date}
               onChange={e => set('open_date', e.target.value)}
-              className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function TaskForm({
       <button
         type="submit"
         disabled={loading}
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-all duration-75 active:scale-95 active:opacity-90"
       >
         {loading ? '저장 중...' : submitLabel}
       </button>
@@ -220,12 +220,12 @@ function StageRow({
   statuses: StageStatus[]
 }) {
   return (
-    <div className="flex items-center gap-4 flex-wrap">
-      <span className="text-sm text-gray-600 w-24">{label}</span>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+      <span className="text-sm text-gray-600 sm:w-24">{label}</span>
       <select
         value={form[statusKey] as string}
         onChange={e => set(statusKey, e.target.value as StageStatus)}
-        className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {statuses.map(s => <option key={s}>{s}</option>)}
       </select>
@@ -234,14 +234,14 @@ function StageRow({
           type="date"
           value={form[startKey] as string}
           onChange={e => set(startKey, e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <span className="text-sm text-gray-400">~</span>
         <input
           type="date"
           value={form[endKey] as string}
           onChange={e => set(endKey, e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
     </div>

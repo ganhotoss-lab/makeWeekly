@@ -52,7 +52,7 @@ export default function TaskEditPage() {
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-900 mb-6">업무 항목 수정</h1>
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
         <TaskForm
           initialData={task}
           onSubmit={handleSubmit}

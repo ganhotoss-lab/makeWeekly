@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/auth/LogoutButton'
+import { LoadingProvider } from '@/lib/loading-context'
+import LoadingOverlay from '@/components/ui/LoadingOverlay'
 
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -15,30 +17,33 @@ export default async function UserLayout({ children }: { children: React.ReactNo
     .single()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <span className="font-bold text-blue-600 text-lg">Weekly Report</span>
-          <Link href="/weekly" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-            이번 주 Weekly
-          </Link>
-          <Link href="/history" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-            이력 조회
-          </Link>
-          {profile?.role === 'admin' && (
-            <Link href="/admin/dashboard" className="text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors">
-              관리자 화면
+    <LoadingProvider>
+      <div className="min-h-screen bg-gray-50">
+        <LoadingOverlay />
+        <nav className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="font-bold text-blue-600 text-lg">Weekly Report</span>
+            <Link href="/weekly" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+              이번 주 Weekly
             </Link>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-600">
-            {profile?.name} <span className="text-gray-400">({profile?.team})</span>
-          </span>
-          <LogoutButton />
-        </div>
-      </nav>
-      <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
-    </div>
+            <Link href="/history" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+              이력 조회
+            </Link>
+            {profile?.role === 'admin' && (
+              <Link href="/admin/dashboard" className="text-sm text-purple-600 hover:text-purple-800 font-medium transition-colors">
+                관리자 화면
+              </Link>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-600">
+              {profile?.name} <span className="text-gray-400">({profile?.team})</span>
+            </span>
+            <LogoutButton />
+          </div>
+        </nav>
+        <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
+      </div>
+    </LoadingProvider>
   )
 }
