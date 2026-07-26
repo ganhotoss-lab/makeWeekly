@@ -1,7 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import LogoutButton from '@/components/auth/LogoutButton'
+import { LoadingProvider } from '@/lib/loading-context'
+import LoadingOverlay from '@/components/ui/LoadingOverlay'
+import NavigationWatcher from '@/components/ui/NavigationWatcher'
+import NavLink from '@/components/ui/NavLink'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,36 +20,40 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/weekly')
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-purple-700 text-white px-4 py-0">
-        {/* 상단 행: 로고 + 사용자 + 로그아웃 */}
-        <div className="flex items-center justify-between py-2">
-          <span className="font-bold text-lg whitespace-nowrap">Weekly Admin</span>
-          <div className="flex items-center gap-3 text-sm">
-            <span className="hidden sm:inline text-purple-200">{profile?.name}</span>
-            <LogoutButton />
+    <LoadingProvider>
+      <div className="min-h-screen bg-gray-50">
+        <LoadingOverlay />
+        <NavigationWatcher />
+        <nav className="bg-purple-700 text-white px-4 sm:px-6">
+          {/* 상단: 로고 + 사용자 */}
+          <div className="flex items-center justify-between py-2.5">
+            <span className="font-bold text-lg">Weekly Admin</span>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-purple-200 hidden sm:inline">{profile?.name}</span>
+              <LogoutButton />
+            </div>
           </div>
-        </div>
-        {/* 하단 행: 네비 링크 (가로 스크롤) */}
-        <div className="flex items-center gap-5 overflow-x-auto pb-2 scrollbar-none">
-          <Link href="/admin/dashboard" className="text-sm hover:text-purple-200 transition-colors whitespace-nowrap shrink-0">
-            대시보드
-          </Link>
-          <Link href="/admin/users" className="text-sm hover:text-purple-200 transition-colors whitespace-nowrap shrink-0">
-            사용자 관리
-          </Link>
-          <Link href="/admin/summary" className="text-sm hover:text-purple-200 transition-colors whitespace-nowrap shrink-0">
-            취합 / 발송
-          </Link>
-          <Link href="/admin/email-logs" className="text-sm hover:text-purple-200 transition-colors whitespace-nowrap shrink-0">
-            발송 이력
-          </Link>
-          <Link href="/weekly" className="text-sm hover:text-purple-200 transition-colors text-purple-300 whitespace-nowrap shrink-0">
-            일반 화면
-          </Link>
-        </div>
-      </nav>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">{children}</main>
-    </div>
+          {/* 하단: 네비 링크 */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-none">
+            <NavLink href="/admin/dashboard" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
+              대시보드
+            </NavLink>
+            <NavLink href="/admin/users" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
+              사용자 관리
+            </NavLink>
+            <NavLink href="/admin/summary" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
+              취합 / 발송
+            </NavLink>
+            <NavLink href="/admin/email-logs" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
+              발송 이력
+            </NavLink>
+            <NavLink href="/weekly" className="shrink-0 text-sm text-purple-300 hover:text-purple-100 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
+              일반 화면
+            </NavLink>
+          </div>
+        </nav>
+        <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
+      </div>
+    </LoadingProvider>
   )
 }
