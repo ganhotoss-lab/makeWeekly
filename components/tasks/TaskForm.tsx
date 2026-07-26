@@ -26,6 +26,7 @@ export interface TaskFormData {
 interface TaskFormProps {
   initialData?: Partial<Task>
   onSubmit: (data: TaskFormData) => Promise<void>
+  onCancel?: () => void
   submitLabel?: string
   showWeeklyFields?: boolean
 }
@@ -35,6 +36,7 @@ const CATEGORIES: Category[] = ['Biz사업', '내부개선', '상품', '기타']
 export default function TaskForm({
   initialData,
   onSubmit,
+  onCancel,
   submitLabel = '저장',
   showWeeklyFields = true,
 }: TaskFormProps) {
@@ -203,13 +205,25 @@ export default function TaskForm({
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-all duration-75 active:scale-95 active:opacity-90"
-      >
-        {loading ? '저장 중...' : submitLabel}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 transition-all duration-75 active:scale-95 active:opacity-90"
+        >
+          {loading ? '저장 중...' : submitLabel}
+        </button>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="border border-gray-300 px-6 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            취소
+          </button>
+        )}
+      </div>
     </form>
   )
 }
