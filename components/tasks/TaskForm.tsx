@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Category, StageStatus, OpenStatus, Task } from '@/types'
+import { useLoading } from '@/lib/loading-context'
 
 export interface TaskFormData {
   category: Category
@@ -57,6 +58,7 @@ export default function TaskForm({
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { startLoading, stopLoading } = useLoading()
 
   function set<K extends keyof TaskFormData>(key: K, value: TaskFormData[K]) {
     setForm(f => ({ ...f, [key]: value }))
@@ -67,12 +69,14 @@ export default function TaskForm({
     if (!form.content.trim()) { setError('업무 내용을 입력해주세요.'); return }
     setLoading(true)
     setError('')
+    startLoading()
     try {
       await onSubmit(form)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '저장 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
+      stopLoading()
     }
   }
 

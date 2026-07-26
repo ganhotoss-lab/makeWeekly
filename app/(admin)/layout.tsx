@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import LogoutButton from '@/components/auth/LogoutButton'
+import { LoadingProvider } from '@/lib/loading-context'
+import LoadingOverlay from '@/components/ui/LoadingOverlay'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,7 +19,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (profile?.role !== 'admin') redirect('/weekly')
 
   return (
+    <LoadingProvider>
     <div className="min-h-screen bg-gray-50">
+      <LoadingOverlay />
       <nav className="bg-purple-700 text-white px-4 sm:px-6">
         {/* 상단: 로고 + 사용자 */}
         <div className="flex items-center justify-between py-2.5">
@@ -48,5 +52,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </nav>
       <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
     </div>
+    </LoadingProvider>
   )
 }

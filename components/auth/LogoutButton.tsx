@@ -1,14 +1,21 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useLoading } from '@/lib/loading-context'
 
 export default function LogoutButton() {
   const router = useRouter()
+  const { startLoading, stopLoading } = useLoading()
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
+    startLoading()
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/login')
+    } finally {
+      stopLoading()
+    }
   }
 
   return (
