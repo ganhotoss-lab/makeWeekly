@@ -25,9 +25,18 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* 가로 스크롤 방지 */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* iOS Safari: input 텍스트 색상 흐림 방지 */
 input, textarea, select {
   color: #171717;
   background-color: #ffffff;
+  -webkit-text-fill-color: #171717;
+  opacity: 1;
 }
 
 .scrollbar-none {
