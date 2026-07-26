@@ -34,18 +34,20 @@ export default async function UserLayout({ children }: { children: React.ReactNo
             </div>
           </div>
           {/* 하단: 네비 링크 */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-none">
-            <NavLink href="/weekly" className="shrink-0 text-sm text-gray-600 hover:text-blue-600 px-2 py-1 rounded-md hover:bg-blue-50 transition-colors">
-              이번 주 Weekly
-            </NavLink>
-            <NavLink href="/history" className="shrink-0 text-sm text-gray-600 hover:text-blue-600 px-2 py-1 rounded-md hover:bg-blue-50 transition-colors">
-              이력 조회
-            </NavLink>
-            {profile?.role === 'admin' && (
-              <NavLink href="/admin/dashboard" className="shrink-0 text-sm text-purple-600 hover:text-purple-800 font-medium px-2 py-1 rounded-md hover:bg-purple-50 transition-colors">
-                관리자 화면
+          <div className="flex items-center overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center border border-gray-200 rounded-lg divide-x divide-gray-200 overflow-hidden shrink-0">
+              <NavLink href="/weekly" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 hover:bg-blue-50 transition-colors">
+                이번 주 Weekly
               </NavLink>
-            )}
+              <NavLink href="/history" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 hover:bg-blue-50 transition-colors">
+                이력 조회
+              </NavLink>
+              {profile?.role === 'admin' && (
+                <NavLink href="/admin/dashboard" className="text-sm text-purple-600 hover:text-purple-800 font-medium px-3 py-1.5 hover:bg-purple-50 transition-colors">
+                  관리자 화면
+                </NavLink>
+              )}
+            </div>
           </div>
         </nav>
         <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>

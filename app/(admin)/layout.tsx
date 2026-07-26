@@ -34,22 +34,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </div>
           </div>
           {/* 하단: 네비 링크 */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-none">
-            <NavLink href="/admin/dashboard" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
-              대시보드
-            </NavLink>
-            <NavLink href="/admin/users" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
-              사용자 관리
-            </NavLink>
-            <NavLink href="/admin/summary" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
-              취합 / 발송
-            </NavLink>
-            <NavLink href="/admin/email-logs" className="shrink-0 text-sm hover:text-purple-200 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
-              발송 이력
-            </NavLink>
-            <NavLink href="/weekly" className="shrink-0 text-sm text-purple-300 hover:text-purple-100 px-2 py-1 rounded-md hover:bg-purple-600 transition-colors">
-              일반 화면
-            </NavLink>
+          <div className="flex items-center overflow-x-auto pb-2 scrollbar-none">
+            <div className="flex items-center border border-purple-500 rounded-lg divide-x divide-purple-500 overflow-hidden shrink-0">
+              <NavLink href="/admin/dashboard" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                대시보드
+              </NavLink>
+              <NavLink href="/admin/users" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                사용자 관리
+              </NavLink>
+              <NavLink href="/admin/summary" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                취합 / 발송
+              </NavLink>
+              <NavLink href="/admin/email-logs" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                발송 이력
+              </NavLink>
+              <NavLink href="/weekly" className="text-sm text-purple-300 hover:text-purple-100 px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                일반 화면
+              </NavLink>
+            </div>
           </div>
         </nav>
         <main className="max-w-6xl mx-auto px-6 py-8">{children}</main>
