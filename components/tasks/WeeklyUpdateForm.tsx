@@ -75,17 +75,17 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
   }
 
   async function handleDeleteEntry() {
-    if (!entry) return
     setConfirmDelete(false)
     startLoading()
     setDeleting(true)
     try {
       const supabase = createClient()
-      // .select()를 체이닝하면 실제로 삭제된 행을 반환 — RLS 무음 차단 감지 가능
+      // weekly_entries 먼저 삭제 후 task 삭제 (FK 제약 대응)
+      await supabase.from('weekly_entries').delete().eq('task_id', task.id)
       const { data, error } = await supabase
-        .from('weekly_entries')
+        .from('tasks')
         .delete()
-        .eq('id', entry.id)
+        .eq('id', task.id)
         .select()
       if (error) {
         alert('삭제 중 오류가 발생했습니다: ' + error.message)

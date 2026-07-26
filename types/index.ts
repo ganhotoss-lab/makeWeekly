@@ -18,6 +18,7 @@ export interface Task {
   id: string
   user_id: string
   category: Category
+  title: string | null
   content: string
   analysis_status: StageStatus
   analysis_start_date: string | null

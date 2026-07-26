@@ -17,6 +17,7 @@ export default function NewTaskPage() {
       .insert({
         user_id: user.id,
         category: data.category,
+        title: data.title || null,
         content: data.content,
         analysis_status: data.analysis_status,
         analysis_start_date: data.analysis_start_date || null,
