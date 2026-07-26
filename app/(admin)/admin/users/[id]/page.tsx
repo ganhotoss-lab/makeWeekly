@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { getWeekStartDate, getWeekLabel } from '@/lib/week'
 import { Task, WeeklyEntry } from '@/types'
 
@@ -8,7 +8,7 @@ interface TaskWithEntries extends Task {
 
 export default async function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const weekStart = getWeekStartDate()
   const weekLabel = getWeekLabel(weekStart)
 

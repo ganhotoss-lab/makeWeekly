@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { getWeekStartDate, getWeekLabel } from '@/lib/week'
 import { User } from '@/types'
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
+  const supabase = await createAdminClient()
   const weekStart = getWeekStartDate()
   const weekLabel = getWeekLabel(weekStart)
 
