@@ -18,8 +18,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 403 })
     }
 
-    const { weekStart, weekLabel, usersData, aiSummaryText } = await request.json()
-    const recipientEmail = process.env.ADMIN_EMAIL!
+    const { weekStart, weekLabel, usersData, aiSummaryText, recipientEmail: bodyEmail } = await request.json()
+    const recipientEmail = bodyEmail || process.env.ADMIN_EMAIL!
     const fileName = `Weekly_${weekStart.replace(/-/g, '')}.xlsx`
 
     const excelBuffer = await generateWeeklyExcel(weekLabel, usersData, aiSummaryText)

@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { getWeekStartDate } from '@/lib/week'
+import { getWeekStartDate, getWeekLabel } from '@/lib/week'
 import { User } from '@/types'
 
 interface SummaryData {
@@ -11,8 +11,26 @@ interface SummaryData {
   usersData: unknown[]
 }
 
+function getRecentWeeks(n: number): { value: string; label: string }[] {
+  const seen = new Set<string>()
+  const weeks: { value: string; label: string }[] = []
+  const today = new Date()
+  for (let i = 0; i < n; i++) {
+    const d = new Date(today)
+    d.setDate(d.getDate() - i * 7)
+    const value = getWeekStartDate(d)
+    if (!seen.has(value)) {
+      seen.add(value)
+      weeks.push({ value, label: getWeekLabel(value) })
+    }
+  }
+  return weeks
+}
+
 export default function SummaryPage() {
-  const weekStart = getWeekStartDate()
+  const recentWeeks = getRecentWeeks(8)
+  const [selectedWeek, setSelectedWeek] = useState(recentWeeks[0].value)
+
   const [managedUsers, setManagedUsers] = useState<User[]>([])
   const [submittedIds, setSubmittedIds] = useState<Set<string>>(new Set())
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -23,27 +41,32 @@ export default function SummaryPage() {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+  const [recipientEmail, setRecipientEmail] = useState('')
 
   useEffect(() => {
     async function loadUsers() {
+      setUsersLoading(true)
+      setSummaryData(null)
+      setSent(false)
+      setError('')
+
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
       const [{ data: users }, { data: entries }] = await Promise.all([
         supabase.from('users').select('*').eq('manager_id', user.id).eq('is_active', true).order('team').order('name'),
-        supabase.from('weekly_entries').select('user_id').eq('week_start_date', weekStart),
+        supabase.from('weekly_entries').select('user_id').eq('week_start_date', selectedWeek),
       ])
 
       const submitted = new Set((entries || []).map(e => e.user_id))
       setManagedUsers(users || [])
       setSubmittedIds(submitted)
-      // 기본: 작성 완료한 파트원만 선택
       setSelectedIds(new Set((users || []).filter(u => submitted.has(u.id)).map(u => u.id)))
       setUsersLoading(false)
     }
     loadUsers()
-  }, [weekStart])
+  }, [selectedWeek])
 
   function toggleUser(id: string) {
     setSelectedIds(prev => {
@@ -86,6 +109,7 @@ export default function SummaryPage() {
 
   async function handleSend() {
     if (!summaryData) return
+    if (!recipientEmail.trim()) { setError('수신 이메일을 입력해주세요.'); return }
     setSending(true)
     setError('')
 
@@ -97,6 +121,7 @@ export default function SummaryPage() {
         weekLabel: summaryData.weekLabel,
         usersData: summaryData.usersData,
         aiSummaryText: summaryData.fullText,
+        recipientEmail: recipientEmail.trim(),
       }),
     })
     const json = await res.json()
@@ -115,6 +140,20 @@ export default function SummaryPage() {
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Weekly 취합 및 AI 요약 발송</h1>
+
+      {/* 주차 선택 */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
+        <h2 className="font-semibold text-gray-900 mb-3">주차 선택</h2>
+        <select
+          value={selectedWeek}
+          onChange={e => setSelectedWeek(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 w-full sm:w-auto"
+        >
+          {recentWeeks.map(w => (
+            <option key={w.value} value={w.value}>{w.label}</option>
+          ))}
+        </select>
+      </div>
 
       {/* 파트원 선택 */}
       <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
@@ -135,7 +174,7 @@ export default function SummaryPage() {
         ) : (
           <div className="space-y-2">
             {submittedUsers.length === 0 && (
-              <p className="text-sm text-gray-400">이번 주 작성된 Weekly가 없습니다.</p>
+              <p className="text-sm text-gray-400">해당 주차에 작성된 Weekly가 없습니다.</p>
             )}
             {submittedUsers.map(u => (
               <label key={u.id} className="flex items-center gap-3 cursor-pointer group">
@@ -174,15 +213,6 @@ export default function SummaryPage() {
         >
           {loading ? 'AI 요약 생성 중...' : `취합 및 AI 요약 생성 (${selectedIds.size}명)`}
         </button>
-        {summaryData && !sent && (
-          <button
-            onClick={handleSend}
-            disabled={sending}
-            className="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-          >
-            {sending ? '발송 중...' : '이메일 발송'}
-          </button>
-        )}
       </div>
 
       {error && (
@@ -201,9 +231,34 @@ export default function SummaryPage() {
           <h2 className="font-semibold text-gray-900 mb-4">
             {summaryData.weekLabel} AI 요약 미리보기
           </h2>
-          <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans">
+          <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed font-sans mb-6">
             {summaryData.fullText}
           </pre>
+
+          {!sent && (
+            <div className="border-t border-gray-100 pt-5">
+              <h3 className="font-semibold text-gray-900 mb-3">이메일 발송</h3>
+              <div className="flex gap-3 flex-wrap items-end">
+                <div className="flex-1 min-w-[200px] sm:max-w-xs">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">수신 이메일</label>
+                  <input
+                    type="email"
+                    placeholder="recipient@example.com"
+                    value={recipientEmail}
+                    onChange={e => setRecipientEmail(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                <button
+                  onClick={handleSend}
+                  disabled={sending || !recipientEmail.trim()}
+                  className="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {sending ? '발송 중...' : '이메일 발송'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
