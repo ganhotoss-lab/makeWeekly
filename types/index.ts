@@ -7,6 +7,7 @@ export interface User {
   team: string
   role: UserRole
   is_active: boolean
+  manager_id: string | null
   created_at: string
 }
 

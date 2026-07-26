@@ -27,6 +27,13 @@ export async function POST(request: Request) {
     })
 
     if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+    // 생성된 사용자에 manager_id 배정 (트리거가 users 행을 생성한 후)
+    await adminSupabase
+      .from('users')
+      .update({ manager_id: caller.id })
+      .eq('id', data.user.id)
+
     return NextResponse.json({ user: data.user })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })

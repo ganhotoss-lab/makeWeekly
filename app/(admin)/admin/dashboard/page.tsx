@@ -1,15 +1,18 @@
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { getWeekStartDate, getWeekLabel } from '@/lib/week'
-import { User } from '@/types'
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
+  const authSupabase = await createClient()
+  const { data: { user: caller } } = await authSupabase.auth.getUser()
+  if (!caller) return null
+
   const supabase = await createAdminClient()
   const weekStart = getWeekStartDate()
   const weekLabel = getWeekLabel(weekStart)
 
   const [{ data: users, error: usersError }, { data: entries }, { data: activeTasks }] = await Promise.all([
-    supabase.from('users').select('*').eq('is_active', true).neq('role', 'admin').order('team').order('name'),
+    supabase.from('users').select('*').eq('is_active', true).eq('manager_id', caller.id).order('team').order('name'),
     supabase.from('weekly_entries').select('user_id, task_id, updated_at').eq('week_start_date', weekStart),
     supabase.from('tasks').select('user_id').eq('is_completed', false),
   ])
@@ -45,7 +48,7 @@ export default async function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <StatCard label="전체 대상자" value={users?.length || 0} color="blue" />
+        <StatCard label="전체 파트원" value={users?.length || 0} color="blue" />
         <StatCard label="작성 완료" value={submitted.length} color="green" />
         <StatCard label="업무 진행 중" value={inProgress.length} color="yellow" />
         <StatCard label="미등록" value={notRegistered.length} color="red" />
