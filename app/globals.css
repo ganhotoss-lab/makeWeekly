@@ -39,6 +39,13 @@ input, textarea, select {
   opacity: 1;
 }
 
+/* placeholder는 회색으로 — -webkit-text-fill-color 덮어쓰기 방지 */
+input::placeholder, textarea::placeholder {
+  color: #9ca3af;
+  -webkit-text-fill-color: #9ca3af;
+  opacity: 1;
+}
+
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;

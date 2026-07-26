@@ -3,11 +3,15 @@ import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@/types'
 
+const EMAIL_SUFFIX = '@makeweekly.local'
+const toEmail = (userId: string) => userId.includes('@') ? userId : userId + EMAIL_SUFFIX
+const toUserId = (email: string) => email.endsWith(EMAIL_SUFFIX) ? email.slice(0, -EMAIL_SUFFIX.length) : email
+
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ email: '', name: '', team: '', role: 'user', password: '' })
+  const [form, setForm] = useState({ userId: '', name: '', team: '', role: 'user', password: '' })
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -33,7 +37,13 @@ export default function UserManagementPage() {
     const res = await fetch('/api/admin/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        email: toEmail(form.userId),
+        name: form.name,
+        team: form.team,
+        role: form.role,
+        password: form.password,
+      }),
     })
     const json = await res.json()
     if (!res.ok) {
@@ -43,7 +53,7 @@ export default function UserManagementPage() {
     }
     setSuccess(`${form.name} 사용자가 생성되었습니다.`)
     setShowForm(false)
-    setForm({ email: '', name: '', team: '', role: 'user', password: '' })
+    setForm({ userId: '', name: '', team: '', role: 'user', password: '' })
     loadUsers()
     setCreating(false)
   }
@@ -94,13 +104,13 @@ export default function UserManagementPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">이메일</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">아이디</label>
               <input
                 required
-                type="email"
-                placeholder="user@company.com"
-                value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                type="text"
+                placeholder="예: hong123"
+                value={form.userId}
+                onChange={e => setForm(f => ({ ...f, userId: e.target.value }))}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
             </div>
@@ -161,7 +171,7 @@ export default function UserManagementPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {['이름', '이메일', '팀', '권한', '상태', '가입일', ''].map(h => (
+              {['이름', '아이디', '팀', '권한', '상태', '가입일', ''].map(h => (
                 <th key={h} className="text-left px-4 py-3 font-medium text-gray-600">{h}</th>
               ))}
             </tr>
@@ -170,7 +180,7 @@ export default function UserManagementPage() {
             {users.map(u => (
               <tr key={u.id} className={u.is_active ? '' : 'opacity-50 bg-gray-50'}>
                 <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
-                <td className="px-4 py-3 text-gray-500">{u.email}</td>
+                <td className="px-4 py-3 text-gray-500">{toUserId(u.email)}</td>
                 <td className="px-4 py-3 text-gray-600">{u.team}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
