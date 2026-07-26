@@ -57,6 +57,7 @@ export default function TaskEditPage() {
         <TaskForm
           initialData={task}
           onSubmit={handleSubmit}
+          onCancel={() => router.back()}
           submitLabel="수정 저장"
           showWeeklyFields={false}
         />

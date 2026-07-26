@@ -56,7 +56,7 @@ export default function NewTaskPage() {
     <div>
       <h1 className="text-xl font-bold text-gray-900 mb-6">신규 업무 등록</h1>
       <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm">
-        <TaskForm onSubmit={handleSubmit} submitLabel="등록" />
+        <TaskForm onSubmit={handleSubmit} onCancel={() => router.back()} submitLabel="등록" />
       </div>
     </div>
   )
