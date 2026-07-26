@@ -163,34 +163,32 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
           </button>
         )}
 
-        {/* 삭제 — 인라인 확인 (iOS confirm() 우회) */}
-        {entry && (
-          confirmDelete ? (
-            <span className="flex items-center gap-1.5">
-              <span className="text-xs text-red-400">삭제할까요?</span>
-              <button
-                onClick={handleDeleteEntry}
-                disabled={deleting}
-                className="text-xs bg-red-500 text-white px-2.5 py-1 rounded-lg transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
-              >
-                {deleting ? '삭제 중...' : '예'}
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="text-xs border border-gray-300 px-2.5 py-1 rounded-lg text-gray-500 transition-all duration-75 active:scale-95 active:opacity-90"
-              >
-                취소
-              </button>
-            </span>
-          ) : (
+        {/* 삭제 — task 전체 삭제, 인라인 확인 (iOS confirm() 우회) */}
+        {confirmDelete ? (
+          <span className="flex items-center gap-1.5">
+            <span className="text-xs text-red-400">업무를 삭제할까요?</span>
             <button
-              onClick={() => setConfirmDelete(true)}
+              onClick={handleDeleteEntry}
               disabled={deleting}
-              className="border border-red-200 px-4 py-1.5 rounded-lg text-sm hover:bg-red-50 text-red-500 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+              className="text-xs bg-red-500 text-white px-2.5 py-1 rounded-lg transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
             >
-              삭제
+              {deleting ? '삭제 중...' : '예'}
             </button>
-          )
+            <button
+              onClick={() => setConfirmDelete(false)}
+              className="text-xs border border-gray-300 px-2.5 py-1 rounded-lg text-gray-500 transition-all duration-75 active:scale-95 active:opacity-90"
+            >
+              취소
+            </button>
+          </span>
+        ) : (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            disabled={deleting}
+            className="border border-red-200 px-4 py-1.5 rounded-lg text-sm hover:bg-red-50 text-red-500 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+          >
+            삭제
+          </button>
         )}
 
         {saved && <span className="text-green-600 text-xs">저장되었습니다</span>}
