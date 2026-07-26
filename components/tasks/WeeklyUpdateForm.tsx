@@ -18,6 +18,8 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
   const [saving, setSaving] = useState(false)
   const [completing, setCompleting] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [confirmComplete, setConfirmComplete] = useState(false)
   const [saved, setSaved] = useState(false)
   const { startLoading, stopLoading } = useLoading()
 
@@ -52,7 +54,7 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
   }
 
   async function handleComplete() {
-    if (!confirm('이 업무를 완료 처리하시겠습니까?')) return
+    setConfirmComplete(false)
     startLoading()
     setCompleting(true)
     try {
@@ -74,14 +76,23 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
 
   async function handleDeleteEntry() {
     if (!entry) return
-    if (!confirm('이번 주 위클리를 삭제하시겠습니까?')) return
+    setConfirmDelete(false)
     startLoading()
     setDeleting(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.from('weekly_entries').delete().eq('id', entry.id)
+      // .select()를 체이닝하면 실제로 삭제된 행을 반환 — RLS 무음 차단 감지 가능
+      const { data, error } = await supabase
+        .from('weekly_entries')
+        .delete()
+        .eq('id', entry.id)
+        .select()
       if (error) {
         alert('삭제 중 오류가 발생했습니다: ' + error.message)
+        return
+      }
+      if (!data || data.length === 0) {
+        alert('삭제 권한이 없습니다. 관리자에게 문의하세요.')
         return
       }
       onSaved()
@@ -123,22 +134,65 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
         >
           {saving ? '저장 중...' : '저장'}
         </button>
-        <button
-          onClick={handleComplete}
-          disabled={completing}
-          className="border border-gray-300 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-50 text-gray-600 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
-        >
-          완료 처리
-        </button>
-        {entry && (
+
+        {/* 완료 처리 — 인라인 확인 */}
+        {confirmComplete ? (
+          <span className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500">완료 처리할까요?</span>
+            <button
+              onClick={handleComplete}
+              disabled={completing}
+              className="text-xs bg-gray-700 text-white px-2.5 py-1 rounded-lg transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+            >
+              예
+            </button>
+            <button
+              onClick={() => setConfirmComplete(false)}
+              className="text-xs border border-gray-300 px-2.5 py-1 rounded-lg text-gray-500 transition-all duration-75 active:scale-95 active:opacity-90"
+            >
+              취소
+            </button>
+          </span>
+        ) : (
           <button
-            onClick={handleDeleteEntry}
-            disabled={deleting}
-            className="border border-red-200 px-4 py-1.5 rounded-lg text-sm hover:bg-red-50 text-red-500 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+            onClick={() => setConfirmComplete(true)}
+            disabled={completing}
+            className="border border-gray-300 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-50 text-gray-600 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
           >
-            {deleting ? '삭제 중...' : '삭제'}
+            완료 처리
           </button>
         )}
+
+        {/* 삭제 — 인라인 확인 (iOS confirm() 우회) */}
+        {entry && (
+          confirmDelete ? (
+            <span className="flex items-center gap-1.5">
+              <span className="text-xs text-red-400">삭제할까요?</span>
+              <button
+                onClick={handleDeleteEntry}
+                disabled={deleting}
+                className="text-xs bg-red-500 text-white px-2.5 py-1 rounded-lg transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+              >
+                {deleting ? '삭제 중...' : '예'}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="text-xs border border-gray-300 px-2.5 py-1 rounded-lg text-gray-500 transition-all duration-75 active:scale-95 active:opacity-90"
+              >
+                취소
+              </button>
+            </span>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              disabled={deleting}
+              className="border border-red-200 px-4 py-1.5 rounded-lg text-sm hover:bg-red-50 text-red-500 transition-all duration-75 active:scale-95 active:opacity-90 disabled:opacity-50"
+            >
+              삭제
+            </button>
+          )
+        )}
+
         {saved && <span className="text-green-600 text-xs">저장되었습니다</span>}
       </div>
     </div>
