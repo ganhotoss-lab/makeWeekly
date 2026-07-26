@@ -95,7 +95,7 @@ export default function SummaryPage() {
     const res = await fetch('/api/summary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ week_start_date: weekStart, user_ids: Array.from(selectedIds) }),
+      body: JSON.stringify({ week_start_date: selectedWeek, user_ids: Array.from(selectedIds) }),
     })
     const json = await res.json()
     if (!res.ok) {
