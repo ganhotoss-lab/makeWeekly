@@ -7,6 +7,26 @@ const EMAIL_SUFFIX = '@makeweekly.local'
 const toEmail = (userId: string) => userId.includes('@') ? userId : userId + EMAIL_SUFFIX
 const toUserId = (email: string) => email.endsWith(EMAIL_SUFFIX) ? email.slice(0, -EMAIL_SUFFIX.length) : email
 
+function RoleBadge({ role }: { role: string }) {
+  return (
+    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
+      role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'
+    }`}>
+      {role === 'admin' ? '관리자' : '일반'}
+    </span>
+  )
+}
+
+function StatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
+      isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+    }`}>
+      {isActive ? '활성' : '비활성'}
+    </span>
+  )
+}
+
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -167,7 +187,43 @@ export default function UserManagementPage() {
         </form>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+      {/* 모바일: 카드 리스트 */}
+      <div className="sm:hidden space-y-3">
+        {users.map(u => (
+          <div
+            key={u.id}
+            className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${!u.is_active ? 'opacity-60' : ''}`}
+          >
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div>
+                <p className="font-semibold text-gray-900">{u.name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{toUserId(u.email)}</p>
+              </div>
+              <button
+                onClick={() => toggleActive(u)}
+                className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+                  u.is_active
+                    ? 'border-red-200 text-red-500 hover:bg-red-50'
+                    : 'border-green-200 text-green-600 hover:bg-green-50'
+                }`}
+              >
+                {u.is_active ? '비활성화' : '활성화'}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5">{u.team}</span>
+              <RoleBadge role={u.role} />
+              <StatusBadge isActive={u.is_active} />
+              <span className="text-xs text-gray-400 ml-auto">
+                {new Date(u.created_at).toLocaleDateString('ko-KR')}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 데스크탑: 테이블 */}
+      <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -182,24 +238,8 @@ export default function UserManagementPage() {
                 <td className="px-4 py-3 font-medium text-gray-900">{u.name}</td>
                 <td className="px-4 py-3 text-gray-500">{toUserId(u.email)}</td>
                 <td className="px-4 py-3 text-gray-600">{u.team}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
-                    u.role === 'admin'
-                      ? 'bg-purple-100 text-purple-700'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {u.role === 'admin' ? '관리자' : '일반'}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-md text-xs font-medium ${
-                    u.is_active
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-600'
-                  }`}>
-                    {u.is_active ? '활성' : '비활성'}
-                  </span>
-                </td>
+                <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
+                <td className="px-4 py-3"><StatusBadge isActive={u.is_active} /></td>
                 <td className="px-4 py-3 text-gray-400 text-xs">
                   {new Date(u.created_at).toLocaleDateString('ko-KR')}
                 </td>
