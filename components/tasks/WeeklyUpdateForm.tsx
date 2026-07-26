@@ -48,7 +48,15 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
     if (!confirm('이 업무를 완료 처리하시겠습니까?')) return
     setCompleting(true)
     const supabase = createClient()
-    await supabase.from('tasks').update({ is_completed: true }).eq('id', task.id)
+    const { error } = await supabase
+      .from('tasks')
+      .update({ is_completed: true })
+      .eq('id', task.id)
+    if (error) {
+      alert('완료 처리 중 오류가 발생했습니다: ' + error.message)
+      setCompleting(false)
+      return
+    }
     onComplete()
   }
 
@@ -61,7 +69,7 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
             value={thisWeek}
             onChange={e => { setThisWeek(e.target.value); setSaved(false) }}
             rows={3}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="이번 주 수행 내용"
           />
         </div>
@@ -71,7 +79,7 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
             value={nextWeek}
             onChange={e => { setNextWeek(e.target.value); setSaved(false) }}
             rows={3}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="다음 주 수행 예정"
           />
         </div>
