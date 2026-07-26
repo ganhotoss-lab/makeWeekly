@@ -22,15 +22,24 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const weekStart = body.week_start_date || getWeekStartDate()
     const weekLabel = getWeekLabel(weekStart)
+    const userIds: string[] | undefined = body.user_ids
 
     const adminSupabase = await createAdminClient()
 
+    // 이 관리자가 관리하는 파트원만 대상으로 함
+    let usersQuery = adminSupabase
+      .from('users')
+      .select('*')
+      .eq('is_active', true)
+      .eq('manager_id', caller.id)
+
+    // 선택된 user_ids가 있으면 해당 파트원만 필터
+    if (userIds && userIds.length > 0) {
+      usersQuery = usersQuery.in('id', userIds)
+    }
+
     const [{ data: users }, { data: tasks }] = await Promise.all([
-      adminSupabase
-        .from('users')
-        .select('*')
-        .eq('is_active', true)
-        .neq('role', 'admin'),
+      usersQuery,
       adminSupabase
         .from('tasks')
         .select('*, weekly_entries!inner(*)')
@@ -44,7 +53,7 @@ export async function POST(request: Request) {
 
     if (usersData.length === 0) {
       return NextResponse.json(
-        { error: '이번 주 작성된 Weekly가 없습니다.' },
+        { error: '선택된 파트원의 이번 주 작성된 Weekly가 없습니다.' },
         { status: 400 }
       )
     }

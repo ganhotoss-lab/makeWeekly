@@ -30,22 +30,31 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
 export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
+  const [managerId, setManagerId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ userId: '', name: '', team: '', role: 'user', password: '' })
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      setManagerId(user?.id || null)
+    })
+  }, [])
+
   const loadUsers = useCallback(async () => {
+    if (!managerId) return
     const supabase = createClient()
     const { data } = await supabase
       .from('users')
       .select('*')
+      .eq('manager_id', managerId)
       .order('team')
       .order('name')
     setUsers(data || [])
     setLoading(false)
-  }, [])
+  }, [managerId])
 
   useEffect(() => { loadUsers() }, [loadUsers])
 
@@ -80,10 +89,7 @@ export default function UserManagementPage() {
 
   async function toggleActive(user: User) {
     const supabase = createClient()
-    await supabase
-      .from('users')
-      .update({ is_active: !user.is_active })
-      .eq('id', user.id)
+    await supabase.from('users').update({ is_active: !user.is_active }).eq('id', user.id)
     loadUsers()
   }
 
@@ -220,6 +226,9 @@ export default function UserManagementPage() {
             </div>
           </div>
         ))}
+        {users.length === 0 && (
+          <p className="text-center text-gray-400 py-8 text-sm">등록된 파트원이 없습니다.</p>
+        )}
       </div>
 
       {/* 데스크탑: 테이블 */}
@@ -253,6 +262,11 @@ export default function UserManagementPage() {
                 </td>
               </tr>
             ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center text-gray-400 py-8 text-sm">등록된 파트원이 없습니다.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

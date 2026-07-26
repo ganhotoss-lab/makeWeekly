@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getWeekStartDate, getWeekLabel } from '@/lib/week'
 import { Task, WeeklyEntry } from '@/types'
+import AdminTaskActions from '@/components/admin/AdminTaskActions'
 
 interface TaskWithEntries extends Task {
   weekly_entries: WeeklyEntry[]
@@ -44,13 +45,16 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
                 task.is_completed ? 'opacity-60 border-gray-100' : 'border-gray-200'
               }`}
             >
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
-                  {task.category}
-                </span>
-                {task.is_completed && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
-                )}
+              <div className="flex items-start justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
+                    {task.category}
+                  </span>
+                  {task.is_completed && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-md">완료</span>
+                  )}
+                </div>
+                <AdminTaskActions taskId={task.id} userId={id} />
               </div>
               <p className="font-medium text-gray-900 mb-1">{task.title || task.content}</p>
               {task.title && (
