@@ -52,6 +52,14 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
     onComplete()
   }
 
+  async function handleDelete() {
+    if (!entry) return
+    if (!confirm('이번 주 위클리 내용을 삭제하시겠습니까?')) return
+    const supabase = createClient()
+    await supabase.from('weekly_entries').delete().eq('id', entry.id)
+    onSaved()
+  }
+
   return (
     <div className="mt-4 pt-4 border-t border-gray-100">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
@@ -76,7 +84,7 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
           />
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -91,6 +99,14 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
         >
           완료 처리
         </button>
+        {entry && (
+          <button
+            onClick={handleDelete}
+            className="border border-red-200 px-4 py-1.5 rounded-lg text-sm hover:bg-red-50 text-red-500 transition-colors"
+          >
+            삭제
+          </button>
+        )}
         {saved && <span className="text-green-600 text-xs">저장되었습니다</span>}
       </div>
     </div>
