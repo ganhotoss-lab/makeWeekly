@@ -1,7 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Category, StageStatus, OpenStatus, Task } from '@/types'
 import { useLoading } from '@/lib/loading-context'
+import { createClient } from '@/lib/supabase/client'
 
 export interface TaskFormData {
   category: Category
@@ -32,8 +33,6 @@ interface TaskFormProps {
   showWeeklyFields?: boolean
 }
 
-const CATEGORIES: Category[] = ['Biz사업', '내부개선', '상품', '기타']
-
 export default function TaskForm({
   initialData,
   onSubmit,
@@ -42,7 +41,7 @@ export default function TaskForm({
   showWeeklyFields = true,
 }: TaskFormProps) {
   const [form, setForm] = useState<TaskFormData>({
-    category: (initialData?.category as Category) || 'Biz사업',
+    category: initialData?.category || '',
     title: initialData?.title || '',
     request_dept: initialData?.request_dept || '',
     content: initialData?.content || '',
@@ -61,9 +60,23 @@ export default function TaskForm({
     this_week: '',
     next_week: '',
   })
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const { startLoading, stopLoading } = useLoading()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('categories')
+      .select('name')
+      .order('sort_order')
+      .then(({ data }) => {
+        const names = (data || []).map((c: { name: string }) => c.name)
+        setCategories(names)
+        setForm(f => ({ ...f, category: f.category || names[0] || '' }))
+      })
+  }, [])
 
   function set<K extends keyof TaskFormData>(key: K, value: TaskFormData[K]) {
     setForm(f => ({ ...f, [key]: value }))
@@ -93,10 +106,10 @@ export default function TaskForm({
         <label className="block text-sm font-medium text-gray-700 mb-1">구분</label>
         <select
           value={form.category}
-          onChange={e => set('category', e.target.value as Category)}
+          onChange={e => set('category', e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:w-auto focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {CATEGORIES.map(c => <option key={c}>{c}</option>)}
+          {categories.map(c => <option key={c}>{c}</option>)}
         </select>
       </div>
 

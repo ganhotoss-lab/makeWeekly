@@ -48,6 +48,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <NavLink href="/admin/email-logs" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
                 발송 이력
               </NavLink>
+              <NavLink href="/admin/categories" className="text-sm text-purple-100 hover:text-white px-3 py-1.5 hover:bg-purple-600 transition-colors">
+                구분 관리
+              </NavLink>
               <NavLink href="/weekly" className="text-sm text-purple-300 hover:text-purple-100 px-3 py-1.5 hover:bg-purple-600 transition-colors">
                 일반 화면
               </NavLink>
