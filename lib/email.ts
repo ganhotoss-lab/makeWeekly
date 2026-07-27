@@ -31,7 +31,7 @@ export async function sendWeeklyReport(params: {
       .join('\n')
 
     const { error } = await resend.emails.send({
-      from: 'Weekly Report <onboarding@resend.dev>',
+      from: 'Weekly Report <noreply@abllife.co.kr>',
       to: [params.to],
       ...(params.cc && params.cc.length > 0 ? { cc: params.cc } : {}),
       subject: `[Weekly Report] ${params.weekLabel} 팀 Weekly 종합 보고`,
