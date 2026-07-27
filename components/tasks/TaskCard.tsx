@@ -5,10 +5,30 @@ import { Task, WeeklyEntry, StageStatus } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import WeeklyUpdateForm from './WeeklyUpdateForm'
 
-const STATUS_COLOR: Record<StageStatus, string> = {
-  '미시작': 'bg-gray-100 text-gray-500',
+const STATUS_COLOR: Record<string, string> = {
+  '미시작': 'bg-gray-100 text-gray-400',
   '진행중': 'bg-blue-100 text-blue-700',
   '완료': 'bg-green-100 text-green-700',
+  '미오픈': 'bg-gray-100 text-gray-400',
+  '오픈완료': 'bg-green-100 text-green-700',
+}
+
+function fmtD(d?: string | null) {
+  if (!d) return null
+  const [, m, day] = d.split('-')
+  return `${parseInt(m)}/${parseInt(day)}`
+}
+
+function StageChip({ label, status, start, end }: { label: string; status: string; start?: string | null; end?: string | null }) {
+  const color = STATUS_COLOR[status] ?? 'bg-gray-100 text-gray-400'
+  const s = fmtD(start)
+  const e = fmtD(end)
+  const dates = s || e ? ` · ${s ?? '?'}~${e ?? '?'}` : ''
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-md ${color}`}>
+      {label}{dates || `: ${status}`}
+    </span>
+  )
 }
 
 interface Props {
@@ -62,22 +82,14 @@ export default function TaskCard({ task, entry, prevEntry, onRefresh }: Props) {
     <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-1.5 mb-2 flex-wrap">
             <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-md font-medium">
               {task.category}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded-md ${STATUS_COLOR[task.analysis_status]}`}>
-              분석/설계: {task.analysis_status}
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded-md ${STATUS_COLOR[task.development_status]}`}>
-              개발: {task.development_status}
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded-md ${STATUS_COLOR[task.uat_status]}`}>
-              UAT: {task.uat_status}
-            </span>
-            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
-              OPEN: {task.open_status}
-            </span>
+            <StageChip label="분석" status={task.analysis_status} start={task.analysis_start_date} end={task.analysis_end_date} />
+            <StageChip label="개발" status={task.development_status} start={task.development_start_date} end={task.development_end_date} />
+            <StageChip label="UAT" status={task.uat_status} start={task.uat_start_date} end={task.uat_end_date} />
+            <StageChip label="OPEN" status={task.open_status} start={task.open_date} />
           </div>
           <p className="font-medium text-gray-900">{task.title || task.content}</p>
           {task.title && (

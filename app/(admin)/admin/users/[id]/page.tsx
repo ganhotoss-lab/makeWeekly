@@ -8,6 +8,32 @@ interface TaskWithEntries extends Task {
   weekly_entries: WeeklyEntry[]
 }
 
+const STATUS_COLOR: Record<string, string> = {
+  '미시작': 'bg-gray-100 text-gray-400',
+  '진행중': 'bg-blue-100 text-blue-700',
+  '완료': 'bg-green-100 text-green-700',
+  '미오픈': 'bg-gray-100 text-gray-400',
+  '오픈완료': 'bg-green-100 text-green-700',
+}
+
+function fmtD(d?: string | null) {
+  if (!d) return null
+  const [, m, day] = d.split('-')
+  return `${parseInt(m)}/${parseInt(day)}`
+}
+
+function StageChip({ label, status, start, end }: { label: string; status: string; start?: string | null; end?: string | null }) {
+  const color = STATUS_COLOR[status] ?? 'bg-gray-100 text-gray-400'
+  const s = fmtD(start)
+  const e = fmtD(end)
+  const dates = s || e ? ` · ${s ?? '?'}~${e ?? '?'}` : ''
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-md ${color}`}>
+      {label}{dates || `: ${status}`}
+    </span>
+  )
+}
+
 export default async function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
@@ -69,19 +95,11 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
               {task.title && (
                 <p className="text-sm text-gray-500 mb-2">{task.content}</p>
               )}
-              <div className="flex gap-2 text-xs flex-wrap mb-3">
-                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  분석/설계: {task.analysis_status}
-                </span>
-                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  개발: {task.development_status}
-                </span>
-                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  UAT: {task.uat_status}
-                </span>
-                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                  OPEN: {task.open_status}
-                </span>
+              <div className="flex gap-1.5 text-xs flex-wrap mb-3">
+                <StageChip label="분석" status={task.analysis_status} start={task.analysis_start_date} end={task.analysis_end_date} />
+                <StageChip label="개발" status={task.development_status} start={task.development_start_date} end={task.development_end_date} />
+                <StageChip label="UAT" status={task.uat_status} start={task.uat_start_date} end={task.uat_end_date} />
+                <StageChip label="OPEN" status={task.open_status} start={task.open_date} />
               </div>
 
               {thisWeekEntry ? (
