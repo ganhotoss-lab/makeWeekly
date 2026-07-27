@@ -6,6 +6,7 @@ import { useLoading } from '@/lib/loading-context'
 export interface TaskFormData {
   category: Category
   title: string
+  request_dept: string
   content: string
   analysis_status: StageStatus
   analysis_start_date: string
@@ -43,6 +44,7 @@ export default function TaskForm({
   const [form, setForm] = useState<TaskFormData>({
     category: (initialData?.category as Category) || 'Biz사업',
     title: initialData?.title || '',
+    request_dept: initialData?.request_dept || '',
     content: initialData?.content || '',
     analysis_status: (initialData?.analysis_status as StageStatus) || '미시작',
     analysis_start_date: initialData?.analysis_start_date || '',
@@ -109,6 +111,18 @@ export default function TaskForm({
           onChange={e => set('title', e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="업무 제목을 간략히 입력하세요"
+        />
+      </div>
+
+      {/* 요청부서 */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">요청부서</label>
+        <input
+          type="text"
+          value={form.request_dept}
+          onChange={e => set('request_dept', e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="요청 부서명을 입력하세요"
         />
       </div>
 

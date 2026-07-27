@@ -28,7 +28,7 @@ export async function generateWeeklySummary(
   const dataText = usersData.map(({ user, tasks }) => {
     const taskLines = tasks.map(t => {
       const entry = t.weekly_entries?.[0]
-      return `  [${t.category}] ${t.content}
+      return `  [${t.category}] ${t.content}${t.request_dept ? ` (요청부서: ${t.request_dept})` : ''}
     - 진행상태: 분석/설계(${t.analysis_status}) / 개발(${t.development_status}) / UAT(${t.uat_status}) / OPEN(${t.open_status})
     - This Week: ${entry?.this_week || '(미작성)'}
     - Next Week: ${entry?.next_week || '(미작성)'}${t.note ? `\n    - 비고: ${t.note}` : ''}`
