@@ -11,7 +11,7 @@ export interface User {
   created_at: string
 }
 
-export type Category = 'Biz사업' | '내부개선' | '상품' | '기타'
+export type Category = string
 export type StageStatus = '미시작' | '진행중' | '완료'
 export type OpenStatus = '미오픈' | '오픈완료'
 
