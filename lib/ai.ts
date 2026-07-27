@@ -58,7 +58,7 @@ ${[...new Set(usersData.flatMap(({ tasks }) => tasks.map(t => t.category)))].map
   이번 주 수행 내용 및 주요 진행 현황, 다음 주 계획`
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-5',
+    model: 'claude-sonnet-4-6',
     max_tokens: 2048,
     messages: [{ role: 'user', content: prompt }],
   })
