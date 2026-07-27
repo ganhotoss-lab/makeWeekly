@@ -33,7 +33,7 @@ export async function generateWeeklyExcel(
   }
 
   const headers = [
-    '완료여부', '구분', '업무 내용',
+    '완료여부', '구분', '요청부서', '업무 내용',
     '분석/설계 상태', '분석/설계 시작일', '분석/설계 종료일',
     '개발 상태', '개발 시작일', '개발 종료일',
     'UAT 상태', 'UAT 시작일', 'UAT 종료일',
@@ -41,7 +41,7 @@ export async function generateWeeklyExcel(
     'This Week', 'Next Week', '비고',
   ]
 
-  const colWidths = [10, 12, 35, 14, 14, 14, 12, 14, 14, 12, 14, 14, 12, 14, 45, 45, 20]
+  const colWidths = [10, 12, 16, 35, 14, 14, 14, 12, 14, 14, 12, 14, 14, 12, 14, 45, 45, 20]
 
   for (const { user, tasks } of usersData) {
     const sheetName = `${user.name}_${user.team}`.substring(0, 31)
@@ -62,6 +62,7 @@ export async function generateWeeklyExcel(
       const row = ws.addRow([
         task.is_completed ? '완료' : '진행중',
         task.category,
+        task.request_dept || '',
         task.content,
         task.analysis_status,
         task.analysis_start_date || '',

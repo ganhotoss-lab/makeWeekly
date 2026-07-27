@@ -23,6 +23,7 @@ export default function TaskEditPage() {
       .update({
         category: data.category,
         title: data.title || null,
+        request_dept: data.request_dept || null,
         content: data.content,
         analysis_status: data.analysis_status,
         analysis_start_date: data.analysis_start_date || null,

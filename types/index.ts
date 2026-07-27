@@ -32,6 +32,7 @@ export interface Task {
   uat_end_date: string | null
   open_status: OpenStatus
   open_date: string | null
+  request_dept: string | null
   note: string | null
   is_completed: boolean
   created_at: string
