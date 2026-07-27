@@ -1,6 +1,12 @@
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER!,
+    pass: process.env.GMAIL_APP_PASSWORD!,
+  },
+})
 
 export async function sendWeeklyReport(params: {
   to: string
@@ -30,10 +36,10 @@ export async function sendWeeklyReport(params: {
       })
       .join('\n')
 
-    const { error } = await resend.emails.send({
-      from: 'Weekly Report <noreply@abllife.co.kr>',
-      to: [params.to],
-      ...(params.cc && params.cc.length > 0 ? { cc: params.cc } : {}),
+    await transporter.sendMail({
+      from: `Weekly Report <${process.env.GMAIL_USER}>`,
+      to: params.to,
+      cc: params.cc && params.cc.length > 0 ? params.cc.join(', ') : undefined,
       subject: `[Weekly Report] ${params.weekLabel} 팀 Weekly 종합 보고`,
       html: `
         <div style="font-family:sans-serif;max-width:800px;margin:0 auto;padding:24px;">
@@ -55,7 +61,6 @@ export async function sendWeeklyReport(params: {
       ],
     })
 
-    if (error) return { success: false, error: error.message }
     return { success: true }
   } catch (e) {
     return { success: false, error: String(e) }
