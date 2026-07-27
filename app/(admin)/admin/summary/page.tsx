@@ -51,6 +51,8 @@ export default function SummaryPage() {
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
   const [recipientEmail, setRecipientEmail] = useState('')
+  const [ccInput, setCcInput] = useState('')
+  const [ccEmails, setCcEmails] = useState<string[]>([])
 
   useEffect(() => {
     async function loadData() {
@@ -201,6 +203,7 @@ export default function SummaryPage() {
         usersData: summaryData.usersData,
         aiSummaryText: summaryData.fullText,
         recipientEmail: recipientEmail.trim(),
+        ccEmails: ccEmails.length > 0 ? ccEmails : undefined,
       }),
     })
     const json = await res.json()
@@ -400,25 +403,71 @@ export default function SummaryPage() {
           {!sent && (
             <div className="border-t border-gray-100 pt-5">
               <h3 className="font-semibold text-gray-900 mb-3">이메일 발송</h3>
-              <div className="flex gap-3 flex-wrap items-end">
-                <div className="flex-1 min-w-[200px] sm:max-w-xs">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">수신 이메일</label>
-                  <input
-                    type="email"
-                    placeholder="recipient@example.com"
-                    value={recipientEmail}
-                    onChange={e => setRecipientEmail(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
+              <div className="space-y-3 mb-4">
+                <div className="flex gap-3 flex-wrap items-end">
+                  <div className="flex-1 min-w-[200px] sm:max-w-xs">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">수신 이메일 (To)</label>
+                    <input
+                      type="email"
+                      placeholder="recipient@example.com"
+                      value={recipientEmail}
+                      onChange={e => setRecipientEmail(e.target.value)}
+                      className="border border-gray-300 rounded-lg px-3 py-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
                 </div>
-                <button
-                  onClick={handleSend}
-                  disabled={sending || !recipientEmail.trim()}
-                  className="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
-                >
-                  {sending ? '발송 중...' : '이메일 발송'}
-                </button>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">참조 이메일 (CC)</label>
+                  {ccEmails.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {ccEmails.map(email => (
+                        <span key={email} className="flex items-center gap-1 bg-blue-50 text-blue-700 text-xs px-2.5 py-1 rounded-full">
+                          {email}
+                          <button
+                            onClick={() => setCcEmails(prev => prev.filter(e => e !== email))}
+                            className="hover:text-red-500 ml-0.5"
+                          >✕</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="email"
+                      placeholder="cc@example.com 입력 후 Enter"
+                      value={ccInput}
+                      onChange={e => setCcInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ',') {
+                          e.preventDefault()
+                          const val = ccInput.trim().replace(/,$/, '')
+                          if (val && !ccEmails.includes(val)) setCcEmails(prev => [...prev, val])
+                          setCcInput('')
+                        }
+                      }}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1 max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = ccInput.trim()
+                        if (val && !ccEmails.includes(val)) setCcEmails(prev => [...prev, val])
+                        setCcInput('')
+                      }}
+                      className="text-xs border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
+                    >
+                      추가
+                    </button>
+                  </div>
+                </div>
               </div>
+              <button
+                onClick={handleSend}
+                disabled={sending || !recipientEmail.trim()}
+                className="bg-green-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+              >
+                {sending ? '발송 중...' : '이메일 발송'}
+              </button>
             </div>
           )}
         </div>
