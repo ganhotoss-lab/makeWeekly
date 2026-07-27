@@ -22,38 +22,57 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}))
     const weekStart = body.week_start_date || getWeekStartDate()
     const weekLabel = getWeekLabel(weekStart)
-    const userIds: string[] | undefined = body.user_ids
+    const taskIds: string[] | undefined = body.task_ids
+
+    if (!taskIds || taskIds.length === 0) {
+      return NextResponse.json({ error: '취합할 업무 항목이 없습니다.' }, { status: 400 })
+    }
 
     const adminSupabase = await createAdminClient()
 
-    // 이 관리자가 관리하는 파트원만 대상으로 함
-    let usersQuery = adminSupabase
-      .from('users')
-      .select('*')
-      .eq('is_active', true)
-      .eq('manager_id', caller.id)
-
-    // 선택된 user_ids가 있으면 해당 파트원만 필터
-    if (userIds && userIds.length > 0) {
-      usersQuery = usersQuery.in('id', userIds)
-    }
-
-    const [{ data: users }, { data: tasks }] = await Promise.all([
-      usersQuery,
+    const [{ data: tasks }, { data: entries }] = await Promise.all([
       adminSupabase
         .from('tasks')
-        .select('*, weekly_entries!inner(*)')
-        .eq('weekly_entries.week_start_date', weekStart),
+        .select('*')
+        .in('id', taskIds),
+      adminSupabase
+        .from('weekly_entries')
+        .select('*')
+        .eq('week_start_date', weekStart)
+        .in('task_id', taskIds),
     ])
 
-    const usersData = (users || []).map((user: User) => ({
-      user,
-      tasks: (tasks || []).filter((t: TaskWithEntry) => t.user_id === user.id),
-    })).filter(ud => ud.tasks.length > 0)
+    const entryMap = new Map((entries || []).map(e => [e.task_id, e]))
+
+    // task_id로 조회한 user_id 목록으로 users 가져오기
+    const userIds = [...new Set((tasks || []).map(t => t.user_id))]
+    const { data: users } = await adminSupabase
+      .from('users')
+      .select('*')
+      .in('id', userIds)
+
+    const userMap = new Map((users || []).map(u => [u.id, u]))
+
+    // 유저별로 task 그룹핑
+    const usersDataMap = new Map<string, { user: User; tasks: TaskWithEntry[] }>()
+    for (const task of tasks || []) {
+      const u = userMap.get(task.user_id)
+      if (!u) continue
+      if (!usersDataMap.has(task.user_id)) {
+        usersDataMap.set(task.user_id, { user: u, tasks: [] })
+      }
+      const entry = entryMap.get(task.id)
+      usersDataMap.get(task.user_id)!.tasks.push({
+        ...task,
+        weekly_entries: entry ? [entry] : [],
+      })
+    }
+
+    const usersData = Array.from(usersDataMap.values())
 
     if (usersData.length === 0) {
       return NextResponse.json(
-        { error: '선택된 파트원의 이번 주 작성된 Weekly가 없습니다.' },
+        { error: '선택된 업무의 데이터를 불러올 수 없습니다.' },
         { status: 400 }
       )
     }
