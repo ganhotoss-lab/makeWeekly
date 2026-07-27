@@ -6,6 +6,12 @@ export function getWeekStartDate(date: Date = new Date()): string {
   return d.toISOString().split('T')[0]
 }
 
+export function getPrevWeekStartDate(weekStart: string): string {
+  const d = new Date(weekStart)
+  d.setDate(d.getDate() - 7)
+  return d.toISOString().split('T')[0]
+}
+
 export function getWeekLabel(weekStartDate: string): string {
   const start = new Date(weekStartDate)
   const end = new Date(weekStartDate)

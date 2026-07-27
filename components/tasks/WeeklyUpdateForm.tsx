@@ -8,12 +8,14 @@ import { useLoading } from '@/lib/loading-context'
 interface Props {
   task: Task
   entry: WeeklyEntry | null
+  prevEntry?: WeeklyEntry | null
   onSaved: () => void
   onComplete: () => void
 }
 
-export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: Props) {
-  const [thisWeek, setThisWeek] = useState(entry?.this_week || '')
+export default function WeeklyUpdateForm({ task, entry, prevEntry, onSaved, onComplete }: Props) {
+  const autoFilled = !entry && !!prevEntry?.next_week
+  const [thisWeek, setThisWeek] = useState(entry?.this_week || prevEntry?.next_week || '')
   const [nextWeek, setNextWeek] = useState(entry?.next_week || '')
   const [saving, setSaving] = useState(false)
   const [completing, setCompleting] = useState(false)
@@ -106,7 +108,12 @@ export default function WeeklyUpdateForm({ task, entry, onSaved, onComplete }: P
     <div className="mt-4 pt-4 border-t border-gray-100">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">This Week</label>
+          <div className="flex items-center gap-2 mb-1">
+            <label className="text-xs font-medium text-gray-500">This Week</label>
+            {autoFilled && (
+              <span className="text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">지난 주 Next Week 이월</span>
+            )}
+          </div>
           <textarea
             value={thisWeek}
             onChange={e => { setThisWeek(e.target.value); setSaved(false) }}
