@@ -4,14 +4,16 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Task, WeeklyEntry } from '@/types'
 import TaskCard from '@/components/tasks/TaskCard'
-import { getWeekStartDate, getWeekLabel } from '@/lib/week'
+import { getWeekStartDate, getWeekLabel, getPrevWeekStartDate } from '@/lib/week'
 
 export default function WeeklyPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [entries, setEntries] = useState<Record<string, WeeklyEntry>>({})
+  const [prevEntries, setPrevEntries] = useState<Record<string, WeeklyEntry>>({})
   const [loading, setLoading] = useState(true)
   const weekStart = getWeekStartDate()
   const weekLabel = getWeekLabel(weekStart)
+  const prevWeekStart = getPrevWeekStartDate(weekStart)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -20,7 +22,7 @@ export default function WeeklyPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [{ data: taskData }, { data: entryData }] = await Promise.all([
+      const [{ data: taskData }, { data: entryData }, { data: prevEntryData }] = await Promise.all([
         supabase
           .from('tasks')
           .select('*')
@@ -32,12 +34,20 @@ export default function WeeklyPage() {
           .select('*')
           .eq('user_id', user.id)
           .eq('week_start_date', weekStart),
+        supabase
+          .from('weekly_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('week_start_date', prevWeekStart),
       ])
 
       setTasks(taskData || [])
       const entryMap: Record<string, WeeklyEntry> = {}
       entryData?.forEach(e => { entryMap[e.task_id] = e })
       setEntries(entryMap)
+      const prevEntryMap: Record<string, WeeklyEntry> = {}
+      prevEntryData?.forEach(e => { prevEntryMap[e.task_id] = e })
+      setPrevEntries(prevEntryMap)
     } finally {
       setLoading(false)
     }
@@ -85,6 +95,7 @@ export default function WeeklyPage() {
               key={task.id}
               task={task}
               entry={entries[task.id] || null}
+              prevEntry={prevEntries[task.id] || null}
               onRefresh={load}
             />
           ))}
