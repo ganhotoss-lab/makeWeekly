@@ -78,6 +78,21 @@ export async function POST(request: Request) {
     }
 
     const result = await generateWeeklySummary(weekLabel, usersData)
+
+    // 사용자별 요약 upsert (사용자가 본인 파트 조회용)
+    if (result.userSummaries.length > 0) {
+      await adminSupabase
+        .from('user_summaries')
+        .upsert(
+          result.userSummaries.map(s => ({
+            user_id: s.userId,
+            week_start_date: weekStart,
+            summary_text: s.summary,
+          })),
+          { onConflict: 'user_id,week_start_date' }
+        )
+    }
+
     return NextResponse.json({ ...result, weekLabel, weekStart, usersData })
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 })

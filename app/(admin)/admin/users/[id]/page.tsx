@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getWeekStartDate, getWeekLabel } from '@/lib/week'
 import { Task, WeeklyEntry } from '@/types'
@@ -25,12 +26,20 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">
-          {user?.name}{' '}
-          <span className="text-gray-400 font-normal text-base">({user?.team})</span>
-        </h1>
-        <p className="text-gray-500 mt-0.5">{weekLabel} 기준 업무 현황</p>
+      <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            {user?.name}{' '}
+            <span className="text-gray-400 font-normal text-base">({user?.team})</span>
+          </h1>
+          <p className="text-gray-500 mt-0.5">{weekLabel} 기준 업무 현황</p>
+        </div>
+        <Link
+          href={`/admin/users/${id}/tasks/new`}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors shrink-0"
+        >
+          + 업무 추가
+        </Link>
       </div>
 
       <div className="space-y-4">

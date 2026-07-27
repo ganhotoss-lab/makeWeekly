@@ -86,6 +86,7 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<EntryWithTask[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
+  const [search, setSearch] = useState('')
   const { startLoading, stopLoading } = useLoading()
 
   function toggleStage(id: string) {
@@ -178,7 +179,16 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-900 mb-4">Weekly 이력 조회</h1>
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <h1 className="text-xl font-bold text-gray-900">Weekly 이력 조회</h1>
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="제목 / 내용 검색"
+          className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-56"
+        />
+      </div>
 
       {weeks.length === 0 ? (
         <p className="text-gray-400 text-center py-16">이력이 없습니다.</p>
@@ -189,7 +199,7 @@ export default function HistoryPage() {
             {weeks.map(w => (
               <button
                 key={w.week_start_date}
-                onClick={() => setSelectedWeek(w.week_start_date)}
+                onClick={() => { setSelectedWeek(w.week_start_date); setSearch('') }}
                 className={`shrink-0 px-3 py-1.5 rounded-lg text-sm border transition-all duration-75 active:scale-95 active:opacity-90 ${
                   selectedWeek === w.week_start_date
                     ? 'bg-blue-600 text-white border-blue-600'
@@ -201,8 +211,25 @@ export default function HistoryPage() {
             ))}
           </div>
 
+          {(() => {
+            const q = search.trim().toLowerCase()
+            const filtered = q
+              ? entries.filter(e =>
+                  (e.tasks.title || '').toLowerCase().includes(q) ||
+                  e.tasks.content.toLowerCase().includes(q) ||
+                  e.this_week.toLowerCase().includes(q) ||
+                  e.next_week.toLowerCase().includes(q)
+                )
+              : entries
+            return (
+              <>
+                {q && (
+                  <p className="text-xs text-gray-400 mb-3">
+                    검색 결과 {filtered.length}건 / 전체 {entries.length}건
+                  </p>
+                )}
           <div className="space-y-3">
-            {entries.map(entry => (
+            {filtered.map(entry => (
               <div key={entry.id} className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm">
                 {/* 카드 헤더 */}
                 <div className="flex items-start justify-between gap-2">
@@ -254,6 +281,9 @@ export default function HistoryPage() {
               </div>
             ))}
           </div>
+              </>
+            )
+          })()}
         </>
       )}
     </div>
