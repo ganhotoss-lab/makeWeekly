@@ -88,8 +88,8 @@ export default function SummaryPage() {
         supabase
           .from('tasks')
           .select('*')
-          .eq('is_completed', false)
           .in('user_id', userIds)
+          .order('is_completed', { ascending: true })
           .order('created_at'),
         supabase
           .from('weekly_entries')
@@ -319,7 +319,7 @@ export default function SummaryPage() {
                       {tasks.map(task => (
                         <label
                           key={task.id}
-                          className="flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-purple-50 transition-colors"
+                          className={`flex items-start gap-3 px-4 py-3 cursor-pointer hover:bg-purple-50 transition-colors ${task.is_completed ? 'opacity-60' : ''}`}
                         >
                           <input
                             type="checkbox"
@@ -332,10 +332,13 @@ export default function SummaryPage() {
                               <span className="text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
                                 {task.category}
                               </span>
+                              {task.is_completed && (
+                                <span className="text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded">업무완료</span>
+                              )}
                               {task.request_dept && (
                                 <span className="text-xs text-gray-400">{task.request_dept}</span>
                               )}
-                              <span className="text-sm font-medium text-gray-800 truncate">
+                              <span className={`text-sm font-medium truncate ${task.is_completed ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                                 {task.title || task.content.slice(0, 30)}
                               </span>
                               {task.weeklyEntry ? (
