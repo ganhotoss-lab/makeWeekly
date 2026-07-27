@@ -4,6 +4,7 @@ const resend = new Resend(process.env.RESEND_API_KEY!)
 
 export async function sendWeeklyReport(params: {
   to: string
+  cc?: string[]
   weekLabel: string
   aiSummaryText: string
   excelBuffer: Buffer
@@ -32,6 +33,7 @@ export async function sendWeeklyReport(params: {
     const { error } = await resend.emails.send({
       from: 'Weekly Report <onboarding@resend.dev>',
       to: [params.to],
+      ...(params.cc && params.cc.length > 0 ? { cc: params.cc } : {}),
       subject: `[Weekly Report] ${params.weekLabel} 팀 Weekly 종합 보고`,
       html: `
         <div style="font-family:sans-serif;max-width:800px;margin:0 auto;padding:24px;">
