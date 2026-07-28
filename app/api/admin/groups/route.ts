@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+﻿import { NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 async function requireAdmin() {
@@ -17,7 +17,7 @@ export async function GET() {
   const adminSupabase = await createAdminClient()
   const { data: groups, error } = await adminSupabase
     .from('groups')
-    .select('*, group_members(user_id)')
+    .select('*, group_members(user_id, users(id, name, team))')
     .eq('manager_id', auth.user!.id)
     .order('created_at')
 
