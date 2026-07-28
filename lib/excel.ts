@@ -18,20 +18,21 @@ const DEFAULT_COLUMNS: ExcelColumnConfig[] = [
   { column_key: 'category', label: '구분', enabled: true, sort_order: 1 },
   { column_key: 'request_dept', label: '요청부서', enabled: true, sort_order: 2 },
   { column_key: 'content', label: '업무 내용', enabled: true, sort_order: 3 },
-  { column_key: 'analysis_status', label: '분석/설계 상태', enabled: true, sort_order: 4 },
-  { column_key: 'analysis_start_date', label: '분석/설계 시작일', enabled: true, sort_order: 5 },
-  { column_key: 'analysis_end_date', label: '분석/설계 종료일', enabled: true, sort_order: 6 },
-  { column_key: 'development_status', label: '개발 상태', enabled: true, sort_order: 7 },
-  { column_key: 'development_start_date', label: '개발 시작일', enabled: true, sort_order: 8 },
-  { column_key: 'development_end_date', label: '개발 종료일', enabled: true, sort_order: 9 },
-  { column_key: 'uat_status', label: 'UAT 상태', enabled: true, sort_order: 10 },
-  { column_key: 'uat_start_date', label: 'UAT 시작일', enabled: true, sort_order: 11 },
-  { column_key: 'uat_end_date', label: 'UAT 종료일', enabled: true, sort_order: 12 },
-  { column_key: 'open_status', label: 'OPEN 상태', enabled: true, sort_order: 13 },
-  { column_key: 'open_date', label: 'OPEN 예정일', enabled: true, sort_order: 14 },
-  { column_key: 'this_week', label: 'This Week', enabled: true, sort_order: 15 },
-  { column_key: 'next_week', label: 'Next Week', enabled: true, sort_order: 16 },
-  { column_key: 'note', label: '비고', enabled: true, sort_order: 17 },
+  { column_key: 'milestone', label: 'Milestone', enabled: true, sort_order: 4 },
+  { column_key: 'analysis_status', label: '분석/설계 상태', enabled: false, sort_order: 5 },
+  { column_key: 'analysis_start_date', label: '분석/설계 시작일', enabled: false, sort_order: 6 },
+  { column_key: 'analysis_end_date', label: '분석/설계 종료일', enabled: false, sort_order: 7 },
+  { column_key: 'development_status', label: '개발 상태', enabled: false, sort_order: 8 },
+  { column_key: 'development_start_date', label: '개발 시작일', enabled: false, sort_order: 9 },
+  { column_key: 'development_end_date', label: '개발 종료일', enabled: false, sort_order: 10 },
+  { column_key: 'uat_status', label: 'UAT 상태', enabled: false, sort_order: 11 },
+  { column_key: 'uat_start_date', label: 'UAT 시작일', enabled: false, sort_order: 12 },
+  { column_key: 'uat_end_date', label: 'UAT 종료일', enabled: false, sort_order: 13 },
+  { column_key: 'open_status', label: 'OPEN 상태', enabled: false, sort_order: 14 },
+  { column_key: 'open_date', label: 'OPEN 예정일', enabled: false, sort_order: 15 },
+  { column_key: 'this_week', label: 'This Week', enabled: true, sort_order: 16 },
+  { column_key: 'next_week', label: 'Next Week', enabled: true, sort_order: 17 },
+  { column_key: 'note', label: '비고', enabled: true, sort_order: 18 },
 ]
 
 const COL_WIDTHS: Record<string, number> = {
@@ -39,6 +40,7 @@ const COL_WIDTHS: Record<string, number> = {
   category: 12,
   request_dept: 16,
   content: 35,
+  milestone: 30,
   analysis_status: 14,
   analysis_start_date: 14,
   analysis_end_date: 14,
@@ -55,6 +57,34 @@ const COL_WIDTHS: Record<string, number> = {
   note: 20,
 }
 
+function fmtDate(d?: string | null): string {
+  if (!d) return ''
+  const parts = d.split('-')
+  if (parts.length !== 3) return d
+  return `${parts[0].slice(2)}.${parts[1]}.${parts[2]}`
+}
+
+function fmtRange(start?: string | null, end?: string | null): string {
+  const s = fmtDate(start)
+  const e = fmtDate(end)
+  if (!s && !e) return ''
+  if (s && e) return `${s}~${e}`
+  return s || e
+}
+
+function buildMilestone(task: TaskWithEntry): string {
+  const lines: string[] = []
+  const aRange = fmtRange(task.analysis_start_date, task.analysis_end_date)
+  lines.push(`분석/설계: ${task.analysis_status}${aRange ? ' ' + aRange : ''}`)
+  const dRange = fmtRange(task.development_start_date, task.development_end_date)
+  lines.push(`개발: ${task.development_status}${dRange ? ' ' + dRange : ''}`)
+  const uRange = fmtRange(task.uat_start_date, task.uat_end_date)
+  lines.push(`UAT: ${task.uat_status}${uRange ? ' ' + uRange : ''}`)
+  const openD = fmtDate(task.open_date)
+  lines.push(`OPEN: ${task.open_status}${openD ? ' ' + openD : ''}`)
+  return lines.join('\n')
+}
+
 function getCellValue(key: string, task: TaskWithEntry): string | boolean {
   const entry = task.weekly_entries?.[0]
   switch (key) {
@@ -62,6 +92,7 @@ function getCellValue(key: string, task: TaskWithEntry): string | boolean {
     case 'category': return task.category
     case 'request_dept': return task.request_dept || ''
     case 'content': return task.content
+    case 'milestone': return buildMilestone(task)
     case 'analysis_status': return task.analysis_status
     case 'analysis_start_date': return task.analysis_start_date || ''
     case 'analysis_end_date': return task.analysis_end_date || ''
@@ -132,7 +163,7 @@ export async function generateWeeklyExcel(
 
     for (const task of tasks) {
       const row = ws.addRow(activeCols.map(c => getCellValue(c.column_key, task)))
-      row.height = 60
+      row.height = 72
       row.eachCell(cell => {
         cell.alignment = { vertical: 'top', wrapText: true }
         cell.border = cellBorder
