@@ -406,9 +406,6 @@ export default function SummaryPage() {
           {!sent && (
             <div className="border-t border-gray-100 pt-5">
               <h3 className="font-semibold text-gray-900 mb-1">이메일 발송</h3>
-              <p className="text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 mb-3">
-                현재 Resend 무료 플랜 사용 중 — <strong>가입 이메일 주소로만 발송 가능</strong>합니다. 외부 주소로 발송하려면 Resend 대시보드에서 커스텀 도메인을 인증해야 합니다.
-              </p>
               <div className="space-y-3 mb-4">
                 <div className="flex gap-3 flex-wrap items-end">
                   <div className="flex-1 min-w-[200px] sm:max-w-xs">

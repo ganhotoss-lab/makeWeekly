@@ -72,16 +72,27 @@ function fmtRange(start?: string | null, end?: string | null): string {
   return s || e
 }
 
+const SKIP_STATUSES = new Set(['미시작', '미오픈'])
+
 function buildMilestone(task: TaskWithEntry): string {
   const lines: string[] = []
+
   const aRange = fmtRange(task.analysis_start_date, task.analysis_end_date)
-  lines.push(`분석/설계: ${task.analysis_status}${aRange ? ' ' + aRange : ''}`)
+  const aStatus = SKIP_STATUSES.has(task.analysis_status) ? '' : task.analysis_status
+  if (aStatus || aRange) lines.push(`분석/설계: ${[aStatus, aRange].filter(Boolean).join(' ')}`)
+
   const dRange = fmtRange(task.development_start_date, task.development_end_date)
-  lines.push(`개발: ${task.development_status}${dRange ? ' ' + dRange : ''}`)
+  const dStatus = SKIP_STATUSES.has(task.development_status) ? '' : task.development_status
+  if (dStatus || dRange) lines.push(`개발: ${[dStatus, dRange].filter(Boolean).join(' ')}`)
+
   const uRange = fmtRange(task.uat_start_date, task.uat_end_date)
-  lines.push(`UAT: ${task.uat_status}${uRange ? ' ' + uRange : ''}`)
+  const uStatus = SKIP_STATUSES.has(task.uat_status) ? '' : task.uat_status
+  if (uStatus || uRange) lines.push(`UAT: ${[uStatus, uRange].filter(Boolean).join(' ')}`)
+
   const openD = fmtDate(task.open_date)
-  lines.push(`OPEN: ${task.open_status}${openD ? ' ' + openD : ''}`)
+  const oStatus = SKIP_STATUSES.has(task.open_status) ? '' : task.open_status
+  if (oStatus || openD) lines.push(`OPEN: ${[oStatus, openD].filter(Boolean).join(' ')}`)
+
   return lines.join('\n')
 }
 
