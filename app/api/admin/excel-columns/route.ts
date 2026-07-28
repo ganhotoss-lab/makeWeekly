@@ -18,6 +18,17 @@ export async function GET() {
     .order('sort_order')
 
   if (saved && saved.length > 0) {
+    // 저장된 설정에 없는 새 기본 컬럼 자동 추가
+    const savedKeys = new Set(saved.map((c: { column_key: string }) => c.column_key))
+    const missing = ALL_COLUMN_DEFAULTS.filter(c => !savedKeys.has(c.column_key))
+    if (missing.length > 0) {
+      const maxOrder = Math.max(...saved.map((c: { sort_order: number }) => c.sort_order))
+      const merged = [
+        ...saved,
+        ...missing.map((c, i) => ({ ...c, sort_order: maxOrder + 1 + i })),
+      ]
+      return NextResponse.json(merged)
+    }
     return NextResponse.json(saved)
   }
 
