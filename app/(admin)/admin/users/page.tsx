@@ -4,8 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import { User } from '@/types'
 
 const EMAIL_SUFFIX = '@makeweekly.local'
-const toEmail = (userId: string) => userId.includes('@') ? userId : userId + EMAIL_SUFFIX
 const toUserId = (email: string) => email.endsWith(EMAIL_SUFFIX) ? email.slice(0, -EMAIL_SUFFIX.length) : email
+const toEmail = (userId: string) => userId.includes('@') ? userId : userId + EMAIL_SUFFIX
 
 function RoleBadge({ role }: { role: string }) {
   return (
@@ -31,14 +31,20 @@ export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [managerId, setManagerId] = useState<string | null>(null)
+
+  // 사용자 추가 폼
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ userId: '', name: '', team: '', role: 'user', password: '' })
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
+
+  // 비밀번호 변경
   const [pwUserId, setPwUserId] = useState<string | null>(null)
   const [pwValue, setPwValue] = useState('')
   const [pwSaving, setPwSaving] = useState(false)
+
+  // 메시지
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data: { user } }) => {
@@ -48,8 +54,7 @@ export default function UserManagementPage() {
 
   const loadUsers = useCallback(async () => {
     if (!managerId) return
-    const supabase = createClient()
-    const { data } = await supabase
+    const { data } = await createClient()
       .from('users')
       .select('*')
       .eq('manager_id', managerId)
@@ -78,25 +83,21 @@ export default function UserManagementPage() {
       }),
     })
     const json = await res.json()
-    if (!res.ok) {
-      setError(json.error || '사용자 생성에 실패했습니다.')
-      setCreating(false)
-      return
-    }
+    setCreating(false)
+    if (!res.ok) { setError(json.error || '사용자 생성에 실패했습니다.'); return }
     setSuccess(`${form.name} 사용자가 생성되었습니다.`)
     setShowForm(false)
     setForm({ userId: '', name: '', team: '', role: 'user', password: '' })
     loadUsers()
-    setCreating(false)
   }
 
   async function toggleActive(user: User) {
-    const supabase = createClient()
-    await supabase.from('users').update({ is_active: !user.is_active }).eq('id', user.id)
+    await createClient().from('users').update({ is_active: !user.is_active }).eq('id', user.id)
     loadUsers()
   }
 
   async function handlePwChange(userId: string) {
+    if (pwValue.length < 6) return
     setPwSaving(true)
     setError('')
     const res = await fetch(`/api/admin/users/${userId}`, {
@@ -108,6 +109,18 @@ export default function UserManagementPage() {
     setPwSaving(false)
     if (!res.ok) { setError(json.error || '변경 실패'); return }
     setSuccess('비밀번호가 변경되었습니다.')
+    setPwUserId(null)
+    setPwValue('')
+  }
+
+  function openPwForm(userId: string) {
+    setPwUserId(userId)
+    setPwValue('')
+    setError('')
+    setSuccess('')
+  }
+
+  function closePwForm() {
     setPwUserId(null)
     setPwValue('')
   }
@@ -133,7 +146,7 @@ export default function UserManagementPage() {
           {success}
         </div>
       )}
-      {error && !showForm && (
+      {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
           {error}
         </div>
@@ -197,7 +210,6 @@ export default function UserManagementPage() {
               </select>
             </div>
           </div>
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
           <div className="flex gap-2">
             <button
               type="submit"
@@ -220,10 +232,7 @@ export default function UserManagementPage() {
       {/* 모바일: 카드 리스트 */}
       <div className="sm:hidden space-y-3">
         {users.map(u => (
-          <div
-            key={u.id}
-            className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${!u.is_active ? 'opacity-60' : ''}`}
-          >
+          <div key={u.id} className={`bg-white border border-gray-200 rounded-xl p-4 shadow-sm ${!u.is_active ? 'opacity-60' : ''}`}>
             <div className="flex items-start justify-between gap-2 mb-2">
               <div>
                 <p className="font-semibold text-gray-900">{u.name}</p>
@@ -232,24 +241,20 @@ export default function UserManagementPage() {
               <button
                 onClick={() => toggleActive(u)}
                 className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
-                  u.is_active
-                    ? 'border-red-200 text-red-500 hover:bg-red-50'
-                    : 'border-green-200 text-green-600 hover:bg-green-50'
+                  u.is_active ? 'border-red-200 text-red-500 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'
                 }`}
               >
                 {u.is_active ? '비활성화' : '활성화'}
               </button>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap mb-2">
               <span className="text-xs text-gray-500 bg-gray-100 rounded px-2 py-0.5">{u.team}</span>
               <RoleBadge role={u.role} />
               <StatusBadge isActive={u.is_active} />
-              <span className="text-xs text-gray-400 ml-auto">
-                {new Date(u.created_at).toLocaleDateString('ko-KR')}
-              </span>
+              <span className="text-xs text-gray-400 ml-auto">{new Date(u.created_at).toLocaleDateString('ko-KR')}</span>
             </div>
             {pwUserId === u.id ? (
-              <div className="mt-3 flex gap-2 items-center">
+              <div className="flex gap-2 items-center mt-1">
                 <input
                   type="password"
                   placeholder="새 비밀번호 (6자 이상)"
@@ -260,16 +265,16 @@ export default function UserManagementPage() {
                 <button
                   onClick={() => handlePwChange(u.id)}
                   disabled={pwSaving || pwValue.length < 6}
-                  className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                  className="text-xs bg-purple-600 text-white px-3 py-1.5 rounded-lg disabled:opacity-50 whitespace-nowrap"
                 >
                   {pwSaving ? '변경 중...' : '변경'}
                 </button>
-                <button onClick={() => { setPwUserId(null); setPwValue('') }} className="text-xs text-gray-400 px-2 py-1.5">취소</button>
+                <button onClick={closePwForm} className="text-xs text-gray-400 px-1 py-1.5 whitespace-nowrap">취소</button>
               </div>
             ) : (
               <button
-                onClick={() => { setPwUserId(u.id); setPwValue(''); setError('') }}
-                className="mt-2 text-xs text-gray-400 hover:text-purple-600 underline"
+                onClick={() => openPwForm(u.id)}
+                className="text-xs text-gray-400 hover:text-purple-600 underline"
               >
                 비밀번호 변경
               </button>
@@ -286,9 +291,13 @@ export default function UserManagementPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {['이름', '아이디', '팀', '권한', '상태', '가입일', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 font-medium text-gray-600">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 font-medium text-gray-600">이름</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">아이디</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">팀</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">권한</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">상태</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">가입일</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-600">관리</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -299,14 +308,12 @@ export default function UserManagementPage() {
                 <td className="px-4 py-3 text-gray-600">{u.team}</td>
                 <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
                 <td className="px-4 py-3"><StatusBadge isActive={u.is_active} /></td>
-                <td className="px-4 py-3 text-gray-400 text-xs">
-                  {new Date(u.created_at).toLocaleDateString('ko-KR')}
-                </td>
+                <td className="px-4 py-3 text-gray-400 text-xs">{new Date(u.created_at).toLocaleDateString('ko-KR')}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
                       onClick={() => toggleActive(u)}
-                      className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50 transition-colors"
+                      className="text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50 transition-colors whitespace-nowrap"
                     >
                       {u.is_active ? '비활성화' : '활성화'}
                     </button>
@@ -317,21 +324,21 @@ export default function UserManagementPage() {
                           placeholder="새 비밀번호"
                           value={pwValue}
                           onChange={e => setPwValue(e.target.value)}
-                          className="border border-gray-300 rounded px-2 py-1 text-xs w-32 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          className="border border-gray-300 rounded px-2 py-1 text-xs w-28 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
                         <button
                           onClick={() => handlePwChange(u.id)}
                           disabled={pwSaving || pwValue.length < 6}
-                          className="text-xs bg-purple-600 text-white px-2 py-1 rounded disabled:opacity-50"
+                          className="text-xs bg-purple-600 text-white px-2 py-1 rounded disabled:opacity-50 whitespace-nowrap"
                         >
                           {pwSaving ? '...' : '변경'}
                         </button>
-                        <button onClick={() => { setPwUserId(null); setPwValue('') }} className="text-xs text-gray-400">취소</button>
+                        <button onClick={closePwForm} className="text-xs text-gray-400 whitespace-nowrap">취소</button>
                       </>
                     ) : (
                       <button
-                        onClick={() => { setPwUserId(u.id); setPwValue(''); setError('') }}
-                        className="text-xs text-gray-400 hover:text-purple-600 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50 transition-colors"
+                        onClick={() => openPwForm(u.id)}
+                        className="text-xs text-gray-400 hover:text-purple-600 border border-gray-200 rounded px-2 py-1 hover:bg-gray-50 transition-colors whitespace-nowrap"
                       >
                         비밀번호
                       </button>
