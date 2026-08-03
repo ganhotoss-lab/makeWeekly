@@ -18,23 +18,25 @@ export async function sendWeeklyReport(params: {
 }): Promise<{ success: boolean; error?: string }> {
   try {
     const htmlBody = params.aiSummaryText
-      .split('\n')
-      .map(line => {
-        if (line.startsWith('[') && line.endsWith(']')) {
-          return `<h3 style="margin-top:20px;color:#1e40af;">${line}</h3>`
-        }
-        if (line.startsWith('•')) {
-          return `<p style="margin:4px 0;font-weight:600;">${line}</p>`
-        }
-        if (line.startsWith('- ')) {
-          return `<p style="margin:2px 0 2px 16px;color:#374151;">${line}</p>`
-        }
-        if (line.trim() === '') {
-          return '<br/>'
-        }
-        return `<p style="margin:4px 0;color:#374151;">${line}</p>`
-      })
-      .join('\n')
+      ? params.aiSummaryText
+          .split('\n')
+          .map(line => {
+            if (line.startsWith('[') && line.endsWith(']')) {
+              return `<h3 style="margin-top:20px;color:#1e40af;">${line}</h3>`
+            }
+            if (line.startsWith('•')) {
+              return `<p style="margin:4px 0;font-weight:600;">${line}</p>`
+            }
+            if (line.startsWith('- ')) {
+              return `<p style="margin:2px 0 2px 16px;color:#374151;">${line}</p>`
+            }
+            if (line.trim() === '') {
+              return '<br/>'
+            }
+            return `<p style="margin:4px 0;color:#374151;">${line}</p>`
+          })
+          .join('\n')
+      : `<p style="color:#6B7280;">Weekly 데이터를 Excel 첨부파일로 전송합니다.</p>`
 
     await transporter.sendMail({
       from: `Weekly Report <${process.env.GMAIL_USER}>`,

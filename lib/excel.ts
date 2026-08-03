@@ -185,22 +185,24 @@ export async function generateWeeklyExcel(
     }
   }
 
-  // AI 요약 시트
-  const summaryWs = workbook.addWorksheet('AI 요약')
-  summaryWs.getColumn(1).width = 120
+  // AI 요약 시트 (내용 있을 때만)
+  if (aiSummaryText) {
+    const summaryWs = workbook.addWorksheet('AI 요약')
+    summaryWs.getColumn(1).width = 120
 
-  const titleRow = summaryWs.addRow([`[${weekLabel} Weekly 종합 요약]`])
-  titleRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF2563EB' } }
-  summaryWs.addRow([])
+    const titleRow = summaryWs.addRow([`[${weekLabel} Weekly 종합 요약]`])
+    titleRow.getCell(1).font = { bold: true, size: 14, color: { argb: 'FF2563EB' } }
+    summaryWs.addRow([])
 
-  aiSummaryText.split('\n').forEach(line => {
-    const row = summaryWs.addRow([line])
-    const cell = row.getCell(1)
-    cell.alignment = { wrapText: true }
-    if (line.startsWith('[') && line.endsWith(']')) {
-      cell.font = { bold: true, size: 11 }
-    }
-  })
+    aiSummaryText.split('\n').forEach(line => {
+      const row = summaryWs.addRow([line])
+      const cell = row.getCell(1)
+      cell.alignment = { wrapText: true }
+      if (line.startsWith('[') && line.endsWith(']')) {
+        cell.font = { bold: true, size: 11 }
+      }
+    })
+  }
 
   const buffer = await workbook.xlsx.writeBuffer()
   return Buffer.from(buffer)
