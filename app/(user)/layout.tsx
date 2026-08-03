@@ -45,6 +45,9 @@ export default async function UserLayout({ children }: { children: React.ReactNo
               <NavLink href="/summary" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 hover:bg-blue-50 transition-colors">
                 AI 요약
               </NavLink>
+              <NavLink href="/change-password" className="text-sm text-gray-600 hover:text-blue-600 px-3 py-1.5 hover:bg-blue-50 transition-colors">
+                비밀번호 변경
+              </NavLink>
               {profile?.role === 'admin' && (
                 <NavLink href="/admin/dashboard" className="text-sm text-purple-600 hover:text-purple-800 font-medium px-3 py-1.5 hover:bg-purple-50 transition-colors">
                   관리자 화면

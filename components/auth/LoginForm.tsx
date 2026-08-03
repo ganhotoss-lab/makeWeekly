@@ -65,6 +65,9 @@ export default function LoginForm() {
       >
         {loading ? '로그인 중...' : '로그인'}
       </button>
+      <p className="text-center text-xs text-gray-400 pt-1">
+        비밀번호를 잊으셨나요? 관리자에게 문의하세요.
+      </p>
     </form>
   )
 }
